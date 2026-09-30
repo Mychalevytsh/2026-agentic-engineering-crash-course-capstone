@@ -8,6 +8,10 @@ Read `docs/spec.md` before writing code. The spec is the source of truth.
 1. Spec first. Code only what a requirement (R1..) asks for.
 2. Test first. Write the failing test, run it red, commit; then implement, run green, commit.
 3. Never claim something works without pasting the real command output.
+4. Definition of Done: when finishing a slice, or before any PR/submission step, open
+   `docs/capstone-dod.md` (do not load it otherwise) and update its checkboxes. Tick a box
+   only with a commit hash, file or command output as proof; never tick on a claim alone.
+5. Keep this file short. Put long reference material in `docs/` and read it on demand.
 
 ## Boundaries
 - Next.js App Router, TypeScript strict, Vitest.
