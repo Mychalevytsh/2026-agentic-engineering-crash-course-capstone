@@ -65,6 +65,12 @@ export interface ProgressSummary {
   weakest: TopicMastery[];
 }
 
-export function summarizeProgress(_attempts: Attempt[], _now: number): ProgressSummary {
-  throw new Error("not implemented");
+export function summarizeProgress(attempts: Attempt[], now: number): ProgressSummary {
+  const mastery = masteryByTopic(attempts);
+  return {
+    attemptCount: attempts.length,
+    streak: currentStreak(attempts, now),
+    mastery,
+    weakest: weakestTopics(mastery),
+  };
 }

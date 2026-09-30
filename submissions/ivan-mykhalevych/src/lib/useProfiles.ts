@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { PROFILES_KEY, parseProfiles } from "./profiles";
+import { ATTEMPTS_KEY_BASE, parseAttempts } from "./attempts";
+import type { Attempt } from "./attempts";
+import { BEST_SCORES_KEY, parseBestScores } from "./bestScores";
+import type { BestScores } from "./bestScores";
+import { PROFILES_KEY, parseProfiles, profileKey } from "./profiles";
 import type { Profile, ProfilesState } from "./profiles";
 import { readStored, subscribeToStore } from "./profileStore";
 
@@ -21,4 +25,14 @@ export function useProfiles(): ProfilesState {
 export function useActiveProfile(): Profile | null {
   const { profiles, activeId } = useProfiles();
   return profiles.find((profile) => profile.id === activeId) ?? null;
+}
+
+export function useAttempts(profileId: string | null): Attempt[] {
+  const storedText = useStoredText(profileId === null ? null : profileKey(ATTEMPTS_KEY_BASE, profileId));
+  return useMemo(() => parseAttempts(storedText), [storedText]);
+}
+
+export function useBestScores(): BestScores {
+  const storedText = useStoredText(BEST_SCORES_KEY);
+  return useMemo(() => parseBestScores(storedText), [storedText]);
 }

@@ -29,9 +29,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="relative min-h-full flex flex-col">
         <Background />
         <header className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-5 pt-5">
-          <Link href="/" className="font-mono text-sm text-muted hover:text-accent">
-            Java Trainer
-          </Link>
+          <nav className="flex items-center gap-4 font-mono text-sm">
+            <Link href="/" className="text-muted hover:text-accent">
+              Java Trainer
+            </Link>
+            <Link href="/dashboard" className="text-muted hover:text-accent">
+              Dashboard
+            </Link>
+          </nav>
           <ProfileSwitcher />
         </header>
         {children}

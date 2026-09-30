@@ -1,0 +1,105 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { summarizeProgress } from "@/lib/progress";
+import { LEVELS } from "@/lib/types";
+import { useActiveProfile, useAttempts, useBestScores } from "@/lib/useProfiles";
+
+const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={card}>
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-1 font-mono text-3xl font-bold text-accent">{value}</p>
+    </div>
+  );
+}
+
+export default function DashboardView() {
+  const profile = useActiveProfile();
+  const attempts = useAttempts(profile?.id ?? null);
+  const bestScores = useBestScores();
+  const [now] = useState(() => Date.now());
+
+  if (!profile) return <p className="text-muted">Loading your profile...</p>;
+
+  const summary = summarizeProgress(attempts, now);
+
+  if (summary.attemptCount === 0) {
+    return (
+      <section className={`${card} space-y-4`}>
+        <h2 className="text-xl font-semibold">No attempts yet</h2>
+        <p className="text-muted">Finish a quiz as {profile.name} and your progress will show up here.</p>
+        <Link
+          href="/"
+          className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-[#1a1206]"
+        >
+          Start a quiz
+        </Link>
+      </section>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label="Profile" value={profile.name} />
+        <Stat label="Attempts" value={String(summary.attemptCount)} />
+        <Stat label="Streak" value={`${summary.streak} ${summary.streak === 1 ? "day" : "days"}`} />
+      </div>
+
+      <section className={`${card} space-y-3`}>
+        <h2 className="text-xl font-semibold">Best score per level</h2>
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {LEVELS.map((level) => (
+            <li key={level} className="rounded-xl border border-line p-3">
+              <span className="block text-sm text-muted capitalize">{level}</span>
+              <span className="font-mono text-xl">
+                {bestScores[level] === undefined ? "-" : `${bestScores[level]}%`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={`${card} space-y-4`}>
+        <h2 className="text-xl font-semibold">Mastery by topic</h2>
+        <ul className="space-y-3">
+          {summary.mastery.map(({ topic, correct, total, percent }) => (
+            <li key={topic}>
+              <div className="flex justify-between text-sm">
+                <span className="font-semibold">{topic}</span>
+                <span className="text-muted">
+                  {correct} of {total} correct ({percent}%)
+                </span>
+              </div>
+              <div className="mt-1 h-2 overflow-hidden rounded-full bg-line">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={`${card} space-y-3`}>
+        <h2 className="text-xl font-semibold">Weakest topics</h2>
+        {summary.weakest.length === 0 ? (
+          <p className="text-muted">Not enough answers yet</p>
+        ) : (
+          <ol className="list-decimal space-y-1 pl-5">
+            {summary.weakest.map(({ topic, percent }) => (
+              <li key={topic}>
+                {topic} <span className="text-muted">({percent}%)</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </div>
+  );
+}
