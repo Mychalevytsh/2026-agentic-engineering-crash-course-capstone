@@ -93,6 +93,19 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   and otherwise returns the state unchanged.
 - No function mutates its input.
 
+### R11 Profile switcher
+- The profile state is stored as JSON in `localStorage` under `java-trainer-profiles`
+  (`serializeProfiles`, read back with `parseProfiles`). On first use a profile named
+  "Default" is created (`ensureProfile`).
+- Per-profile data lives under `profileKey(base, id)`, which is `base:id`. The known bases
+  are `java-trainer-attempts` and `java-trainer-best`. Removing a profile deletes the data
+  stored under its keys.
+- Every page has a header with the site title link and a profile switcher: a select that
+  lists the profiles with the active one selected, an "Add profile" control (name field and
+  button) that shows the R10 validation error, and a "Remove" button for the active profile
+  that asks for confirmation.
+- Changes show up in all open components of the tab without a reload, and in other tabs.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -101,6 +114,8 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
 - Given level `senior`, only senior questions are returned.
 - Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the
   first profile becomes active.
+- Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
+- Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
   returns the name "Bob".
 - Given each level, at least one of its questions has a non-empty code snippet.
@@ -117,6 +132,7 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.5 (slice 2): R11 adds the header profile switcher and the per-profile storage key format.
 - v0.4 (slice 1): "no login" becomes "no authentication": local named profiles without passwords (R10). The dashboard is no longer out of scope (added in later slices).
 - v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, both from
   findings of the independent QA run (`docs/qa-plan.md`).

@@ -86,3 +86,14 @@ export function ensureProfile(state: ProfilesState, makeId: () => string): Profi
   const profile = { id: makeId(), name: DEFAULT_PROFILE_NAME };
   return { profiles: [profile], activeId: profile.id };
 }
+
+export const PROFILE_DATA_KEY_BASES = ["java-trainer-attempts", "java-trainer-best"];
+export const PROFILES_KEY = "java-trainer-profiles";
+
+export function serializeProfiles(_state: ProfilesState): string {
+  throw new Error("not implemented");
+}
+
+export function profileKey(_base: string, _id: string): string {
+  throw new Error("not implemented");
+}
