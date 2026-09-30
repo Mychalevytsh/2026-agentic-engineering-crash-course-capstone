@@ -8,7 +8,7 @@ Let a candidate practise Java interview questions by level (junior, middle, seni
 in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
-- Levels: `junior`, `middle`, `senior`. About 5 questions per level. English only.
+- Levels: `junior`, `middle`, `senior`. About 10 questions per level. English only.
 - Static question bank in code. No backend, no login, no persistence.
 - Next.js App Router, TypeScript strict, Vitest.
 
@@ -19,7 +19,7 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `correctIndex` (0..3), `explanation`.
 
 ### R2 Question bank rules (enforced by tests)
-- At least 5 questions per level.
+- At least 10 questions per level.
 - Ids are unique.
 - Every question satisfies R1.
 - Answer options in one question are similar in length: longest <= 2x shortest,
