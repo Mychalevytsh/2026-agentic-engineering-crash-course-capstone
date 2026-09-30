@@ -79,6 +79,10 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       pre-commit: check FAILED - commit blocked.     (git commit exit status 1, HEAD unchanged)
       ```
       The same hook let the real commit `024c65f` through with 29/29 tests passing.
+      Red-commit exception (author's decision, after the agent once used `--no-verify` on
+      `c55fbca` without asking): the hook skips the check only when `RED_COMMIT=1` is set,
+      and `AGENTS.md` forbids `--no-verify`. Verified: a failing staged test gives hook exit 1
+      without the variable and exit 0 with it.
 - [x] **Loops.** One recorded review-fix loop: reviewer report -> fixes -> gate
       `npm run check` (lint + typecheck + tests), max 3 iterations. Result: converged in
       **1 iteration**, gate green (28/28 tests), committed as `bc0c207`. It is a small loop;
