@@ -52,9 +52,10 @@ The work is done only when every box below is ticked **with a link to its eviden
 Status as of the last update of this file.
 
 ### A. The project
-- [x] A small project exists and works: Java interview trainer (levels, 30 questions,
-      shuffled quiz, mistakes review). Evidence: `npm run check` 29/29 tests, `next build`
-      OK, browser run-through, commit `361332d`.
+- [x] A small project exists and works: Java interview trainer (3 levels, 36 questions
+      including code snippets, shuffled quiz, mistakes review, best score per level).
+      Evidence: `npm run check` 41/41 tests, `next build` OK, browser run-throughs, and an
+      independent QA run (10/10 checks, `docs/qa-plan.md`), latest fix `19945a7`.
 - [ ] Light theme and phone-width layout checked (nice to have).
 
 ### B. Practices, each with clickable proof
@@ -62,7 +63,12 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 
 - [x] **Verification (red -> green).** Red `d5be5f3` -> green `9ecbb1d` (quiz state);
       red `74b3c04` -> green `dbfb9cb` (10 questions per level); red `d27d97d` -> green
-      `361332d` (mistakes review, shuffle). Command: `npm run check`.
+      `361332d` (mistakes review, shuffle); red `c55fbca` -> green `a612d48` (best score,
+      R8); red `7781d6a` -> green `790e9d3` (code questions, R9). Command: `npm run check`.
+      Honest note: `c55fbca` was committed with `--no-verify`, which the agent did without
+      asking; afterwards the author approved the documented `RED_COMMIT=1` exception
+      (`11d2f3e`) and `--no-verify` is forbidden in `AGENTS.md`. The two QA fixes
+      (`b52b50e` spec, `19945a7` code) are UI behaviour without a unit test.
 - [x] **SDD.** `docs/spec.md` and `docs/design.md`. For R6/R7 the spec change is in
       `d27d97d`, before the code in `361332d`. (The very first commit contains spec and
       first code together, so use the later commits as proof of order.)
