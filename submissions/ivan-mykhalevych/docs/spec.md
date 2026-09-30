@@ -147,6 +147,21 @@ All functions are pure and work on the attempt log of one profile (R12).
   "Not enough answers yet" in place of the weakest list.
 - The header has a "Dashboard" link next to the site title.
 
+### R15 Logs and JSON export
+- `newestFirst(attempts)` returns a copy ordered by `at`, newest first; the input is not mutated.
+- `exportAttemptsJson(profileName, attempts, exportedAt)` returns JSON text indented by two
+  spaces for `{ profile, exportedAt, attempts }`, where `exportedAt` is an ISO 8601 UTC string
+  made from the given epoch milliseconds.
+- `exportFileName(profileName, exportedAt)` is `java-trainer-<slug>-<yyyy-mm-dd>.json`. The slug
+  is the lower-case name with every run of characters other than letters a-z and digits
+  replaced by one dash and with leading and trailing dashes removed; an empty slug becomes
+  `profile`. The date is the UTC date of `exportedAt`.
+- The page `/logs` lists the active profile's attempts newest first, each as local date and
+  time, level and "N of M correct (P%)". With no attempts it shows "No attempts yet". An
+  "Export JSON" button downloads the file named by `exportFileName`; it is disabled when there
+  is nothing to export.
+- The header has a "Logs" link next to "Dashboard".
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -164,6 +179,9 @@ All functions are pure and work on the attempt log of one profile (R12).
   and two days ago only, it is 1; given only an attempt two days ago, it is 0.
 - Given no attempts, the summary is 0 attempts, streak 0, no mastery and no weakest topics;
   the dashboard then shows "No attempts yet".
+- Given the name "Ann Lee" exported on 2026-09-30, the file name is
+  `java-trainer-ann-lee-2026-09-30.json`; given the name "!!!" it is
+  `java-trainer-profile-2026-09-30.json`.
 - Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
 - Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
@@ -182,6 +200,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name.
 - v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.
 - v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).
 - v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
