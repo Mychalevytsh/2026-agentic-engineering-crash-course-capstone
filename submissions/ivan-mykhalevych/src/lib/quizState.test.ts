@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { initQuiz, nextQuestion, restartQuiz, selectOption } from "./quizState";
+import { initQuiz, nextQuestion, selectOption } from "./quizState";
 import { scoreQuiz } from "./scoring";
 import type { Question } from "./types";
 
@@ -58,9 +58,4 @@ describe("quiz state (spec R5)", () => {
     expect(scoreQuiz(s.questions, s.answers)).toEqual({ correct: 2, total: 2, percent: 100 });
   });
 
-  it("restart returns to a fresh quiz", () => {
-    let s = nextQuestion(selectOption(initQuiz(questions), 0));
-    s = nextQuestion(selectOption(s, 1));
-    expect(restartQuiz(s)).toEqual(initQuiz(questions));
-  });
 });

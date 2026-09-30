@@ -59,7 +59,7 @@ export const QUESTION_BANK: Question[] = [
     text: "What does the static modifier on a method mean?",
     options: [
       "It belongs to the class, not an instance",
-      "It cannot be overridden by anyone ever",
+      "It can only be called from main",
       "It runs once at program startup time",
       "It is only visible inside its package",
     ],
@@ -255,13 +255,13 @@ export const QUESTION_BANK: Question[] = [
     text: "What is the correct signature of the standard main method?",
     options: [
       "public static void main(String[] args)",
-      "public void main(String[] args)",
+      "public static void main(String args)",
       "static public int main(String[] args)",
       "public static main(String[] args)",
     ],
     correctIndex: 0,
     explanation:
-      "The JVM looks for a public static void main(String[]) method. It must be static so no instance is needed, and it returns nothing.",
+      "The classic entry point is public static void main(String[] args). Newer Java versions also allow simplified instance main methods, but this form works everywhere.",
   },
   {
     id: "j9",
@@ -343,7 +343,7 @@ export const QUESTION_BANK: Question[] = [
     options: [
       "Types are checked only at runtime",
       "Primitive types are boxed automatically",
-      "Generic type information is removed after compilation",
+      "Generic types are erased at compile time",
       "Generics are replaced by Object fields",
     ],
     correctIndex: 2,
@@ -372,7 +372,7 @@ export const QUESTION_BANK: Question[] = [
     level: "senior",
     topic: "JVM",
     text: "Where does modern HotSpot keep class metadata?",
-    options: ["Metaspace", "Java heap", "Thread stack", "Code cache"],
+    options: ["Metaspace", "Young generation", "Thread stack", "Code cache"],
     correctIndex: 0,
     explanation:
       "Since Java 8, class metadata lives in Metaspace, which uses native memory. It replaced the old permanent generation.",
