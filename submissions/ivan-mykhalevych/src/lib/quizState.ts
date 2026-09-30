@@ -8,18 +8,29 @@ export interface QuizState {
   finished: boolean;
 }
 
-export function initQuiz(_questions: Question[]): QuizState {
-  throw new Error("not implemented");
+export function initQuiz(questions: Question[]): QuizState {
+  return {
+    questions,
+    index: 0,
+    selected: null,
+    answers: questions.map(() => null),
+    finished: false,
+  };
 }
 
-export function selectOption(_state: QuizState, _option: number): QuizState {
-  throw new Error("not implemented");
+export function selectOption(state: QuizState, option: number): QuizState {
+  if (state.finished || state.selected !== null) return state;
+  const answers = [...state.answers];
+  answers[state.index] = option;
+  return { ...state, selected: option, answers };
 }
 
-export function nextQuestion(_state: QuizState): QuizState {
-  throw new Error("not implemented");
+export function nextQuestion(state: QuizState): QuizState {
+  if (state.finished || state.selected === null) return state;
+  if (state.index === state.questions.length - 1) return { ...state, finished: true };
+  return { ...state, index: state.index + 1, selected: null };
 }
 
-export function restartQuiz(_state: QuizState): QuizState {
-  throw new Error("not implemented");
+export function restartQuiz(state: QuizState): QuizState {
+  return initQuiz(state.questions);
 }
