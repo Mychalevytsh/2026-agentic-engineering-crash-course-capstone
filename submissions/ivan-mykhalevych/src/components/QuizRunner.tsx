@@ -119,6 +119,12 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
 
       <h2 className="text-xl leading-snug font-semibold">{question.text}</h2>
 
+      {question.code && (
+        <pre className="overflow-x-auto rounded-xl border border-line bg-ink/10 p-4 font-mono text-sm">
+          <code>{question.code}</code>
+        </pre>
+      )}
+
       <ul className="space-y-2.5">
         {question.options.map((option, i) => {
           const isCorrect = i === question.correctIndex;

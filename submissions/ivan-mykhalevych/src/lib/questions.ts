@@ -426,6 +426,125 @@ export const QUESTION_BANK: Question[] = [
     explanation:
       "By default Spring creates one shared instance per container (singleton). Mutable state in singleton beans therefore needs care across threads.",
   },
+  {
+    id: "j11",
+    level: "junior",
+    topic: "Strings",
+    text: "What does this code print?",
+    code: `String a = "hi";
+String b = new String("hi");
+System.out.println(a == b);
+System.out.println(a.equals(b));`,
+    options: [
+      "true and true",
+      "false and true",
+      "true and false",
+      "false and false",
+    ],
+    correctIndex: 1,
+    explanation:
+      "new String(\"hi\") creates a separate object, so == (reference comparison) is false, while equals() compares the characters and is true.",
+  },
+  {
+    id: "j12",
+    level: "junior",
+    topic: "Basics",
+    text: "What does this code print?",
+    code: `int result = 7 / 2;
+System.out.println(result);`,
+    options: [
+      "It prints 3",
+      "It prints 3.5",
+      "It prints 4",
+      "It does not compile",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Dividing two ints gives an int: the fractional part is dropped, so 7 / 2 is 3. Use 7 / 2.0 to get 3.5.",
+  },
+  {
+    id: "m11",
+    level: "middle",
+    topic: "Collections",
+    text: "What happens when this code runs?",
+    code: `List<String> names = new ArrayList<>(List.of("a", "b", "c"));
+for (String name : names) {
+    names.add("d");
+}`,
+    options: [
+      "It loops forever adding items",
+      "It does not compile at all",
+      "It adds d three times and ends",
+      "It throws a ConcurrentModificationException",
+    ],
+    correctIndex: 3,
+    explanation:
+      "Structurally modifying an ArrayList while iterating over it makes the iterator fail fast with a ConcurrentModificationException on its next step.",
+  },
+  {
+    id: "m12",
+    level: "middle",
+    topic: "Basics",
+    text: "What does this code print?",
+    code: `Integer a = 127;
+Integer b = 127;
+Integer c = 128;
+Integer d = 128;
+System.out.println((a == b) + \" \" + (c == d));`,
+    options: [
+      "true true",
+      "true false",
+      "false true",
+      "false false",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Boxing caches Integer objects from -128 to 127 by default, so a == b is true, but 128 creates two separate objects and c == d is false. Compare boxed values with equals().",
+  },
+  {
+    id: "s11",
+    level: "senior",
+    topic: "Concurrency",
+    text: "Why is this class not thread-safe?",
+    code: `class Counter {
+    private int count;
+
+    void increment() {
+        count++;
+    }
+}`,
+    options: [
+      "int fields cannot be shared between threads",
+      "increment() must be declared static to work",
+      "count++ is not an atomic operation",
+      "count must be final to be visible",
+    ],
+    correctIndex: 2,
+    explanation:
+      "count++ is a read, an add and a write. Two threads can interleave those steps and lose updates. Use AtomicInteger or synchronization.",
+  },
+  {
+    id: "s12",
+    level: "senior",
+    topic: "Basics",
+    text: "What does value() return?",
+    code: `static int value() {
+    try {
+        return 1;
+    } finally {
+        return 2;
+    }
+}`,
+    options: [
+      "It returns 2",
+      "It returns 1",
+      "It throws an exception",
+      "It does not compile",
+    ],
+    correctIndex: 0,
+    explanation:
+      "A return inside finally overrides the earlier return, so the method returns 2. It compiles, but it is considered bad practice and hides exceptions.",
+  },
 ];
 
 export function getQuestions(level: Level): Question[] {
