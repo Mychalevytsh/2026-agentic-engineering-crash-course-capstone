@@ -48,7 +48,7 @@ export default function ProfileSwitcher() {
         aria-label="Profile"
         value={active.id}
         onChange={(event) => saveProfiles(switchProfile(readProfiles(), event.target.value))}
-        className={control}
+        className={`${control} max-w-40 truncate`}
       >
         {profiles.map((profile) => (
           <option key={profile.id} value={profile.id}>
@@ -70,7 +70,7 @@ export default function ProfileSwitcher() {
             onChange={(event) => setName(event.target.value)}
             placeholder="Name"
             autoFocus
-            className={control}
+            className={`${control} min-w-0 max-w-full`}
           />
           <button type="submit" className={smallButton}>
             Create
