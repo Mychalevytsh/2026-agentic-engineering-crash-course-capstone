@@ -89,3 +89,18 @@ Not tested by the agent: a contrast audit, screen readers, refresh in the middle
 blocked storage, focus after "See score", and a profile literally named "Ann Lee" (the file
 name rule was tested with other names). A second QA run after the header fix was not repeated
 (KISS); the fix was verified by the author agent.
+
+## Test-and-fix pass (2026-10-01, author agent, built-in browser)
+
+Covered the gaps the independent runs had listed as "not tested":
+
+| Area | Result | Action |
+|---|---|---|
+| Contrast audit, dark theme (computed WCAG ratios) | PASS, lowest 5.2:1 | none |
+| Contrast audit, light theme | FAIL: button label 3.58:1 (needs 4.5:1) | Fixed: `on-accent` token and darker light `accent-2`, now 5.18:1 and 5.02:1 (`3e45cfe`, design.md first) |
+| Light theme, visual check of home and an answered code question | PASS | none |
+| Blocked `localStorage` (getter that throws) | Quiz and navigation worked with no errors; dashboard and logs showed "Loading your profile..." forever | Fixed: `storageAvailable()` and a clear message (spec R11 v0.13; red `89a0199`, green in the next commit) |
+| Refresh in the middle of a quiz | PASS: back to the start screen, no partial attempt logged | none (by design) |
+
+Still not tested: screen readers, other browsers (only the built-in Chromium pane), and multiple
+tabs open at once. These checks were done by the author agent, not by an independent checker.

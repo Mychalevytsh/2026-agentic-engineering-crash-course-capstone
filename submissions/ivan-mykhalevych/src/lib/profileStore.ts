@@ -112,6 +112,14 @@ export function removeStoredProfile(id: string): void {
   if (!readProfiles().profiles.some((profile) => profile.id === id)) deleteProfileData(id);
 }
 
+const STORAGE_PROBE_KEY = "java-trainer-storage-probe";
+
 export function storageAvailable(): boolean {
-  throw new Error("not implemented");
+  try {
+    localStorage.setItem(STORAGE_PROBE_KEY, "1");
+    localStorage.removeItem(STORAGE_PROBE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
 }

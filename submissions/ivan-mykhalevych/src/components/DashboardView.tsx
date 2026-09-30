@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NoProfileNotice from "./NoProfileNotice";
 import { useState } from "react";
 import { summarizeProgress } from "@/lib/progress";
 import { LEVELS } from "@/lib/types";
@@ -23,7 +24,7 @@ export default function DashboardView() {
   const bestScores = useBestScores();
   const [now] = useState(() => Date.now());
 
-  if (!profile) return <p className="text-muted">Loading your profile...</p>;
+  if (!profile) return <NoProfileNotice />;
 
   const summary = summarizeProgress(attempts, now);
 

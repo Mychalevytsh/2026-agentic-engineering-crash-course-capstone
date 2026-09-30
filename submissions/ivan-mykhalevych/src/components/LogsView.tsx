@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NoProfileNotice from "./NoProfileNotice";
 import { exportAttemptsJson, exportFileName, newestFirst } from "@/lib/logExport";
 import { useActiveProfile, useAttempts } from "@/lib/useProfiles";
 
@@ -10,7 +11,7 @@ export default function LogsView() {
   const profile = useActiveProfile();
   const attempts = useAttempts(profile?.id ?? null);
 
-  if (!profile) return <p className="text-muted">Loading your profile...</p>;
+  if (!profile) return <NoProfileNotice />;
 
   if (attempts.length === 0) {
     return (
