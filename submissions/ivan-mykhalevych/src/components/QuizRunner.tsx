@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
+import { saveBestScore } from "@/lib/bestScores";
 import { getMistakes } from "@/lib/mistakes";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
 import { shuffleQuestions } from "@/lib/shuffle";
-import type { Question } from "@/lib/types";
+import type { Level, Question } from "@/lib/types";
 
 type QuizOrStartScreen = QuizState | null;
 type Action =
@@ -27,8 +28,19 @@ const primaryBtn =
 const ghostBtn =
   "rounded-xl border border-line px-5 py-2.5 transition-colors hover:border-accent hover:text-accent";
 
-export default function QuizRunner({ questions }: { questions: Question[] }) {
+export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const screen = state === null ? "start" : state.finished ? "score" : state.index;
+
+  useEffect(() => {
+    if (screen !== "start") headingRef.current?.focus();
+  }, [screen]);
+
+  useEffect(() => {
+    if (state?.finished) saveBestScore(level, scoreQuiz(state.questions, state.answers).percent);
+  }, [state, level]);
+
   const start = () => dispatch({ type: "start", questions: shuffleQuestions(questions, Math.random) });
 
   if (state === null) {
@@ -51,7 +63,9 @@ export default function QuizRunner({ questions }: { questions: Question[] }) {
     return (
       <div className="space-y-6">
         <section className={`${card} space-y-5`} aria-live="polite">
-          <h2 className="text-2xl font-semibold">Your score</h2>
+          <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold">
+            Your score
+          </h2>
           <p className="font-mono text-5xl font-bold text-accent">{score.percent}%</p>
           <p className="text-muted">
             {score.correct} of {score.total} correct
@@ -75,6 +89,11 @@ export default function QuizRunner({ questions }: { questions: Question[] }) {
               {mistakes.map(({ question, chosen }) => (
                 <li key={question.id} className="space-y-1.5 border-t border-line pt-4 first:border-0 first:pt-0">
                   <p className="font-semibold">{question.text}</p>
+                  {question.code && (
+                    <pre className="overflow-x-auto rounded-xl border border-line bg-ink/10 p-3 font-mono text-sm">
+                      <code>{question.code}</code>
+                    </pre>
+                  )}
                   <p className="text-bad">
                     Your answer: {chosen === null ? "Skipped" : question.options[chosen]}
                   </p>
@@ -111,7 +130,15 @@ export default function QuizRunner({ questions }: { questions: Question[] }) {
         </div>
       </div>
 
-      <h2 className="text-xl leading-snug font-semibold">{question.text}</h2>
+      <h2 ref={headingRef} tabIndex={-1} className="text-xl leading-snug font-semibold">
+        {question.text}
+      </h2>
+
+      {question.code && (
+        <pre className="overflow-x-auto rounded-xl border border-line bg-ink/10 p-4 font-mono text-sm">
+          <code>{question.code}</code>
+        </pre>
+      )}
 
       <ul className="space-y-2.5">
         {question.options.map((option, i) => {
@@ -148,7 +175,7 @@ export default function QuizRunner({ questions }: { questions: Question[] }) {
             {state.selected === question.correctIndex ? "Correct!" : "Not quite."}
           </p>
           <p className="text-muted">{question.explanation}</p>
-          <button onClick={() => dispatch({ type: "next" })} className={primaryBtn}>
+          <button autoFocus onClick={() => dispatch({ type: "next" })} className={primaryBtn}>
             {isLast ? "See score" : "Next →"}
           </button>
         </div>

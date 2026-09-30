@@ -12,7 +12,8 @@ subagents and heavy process only when they clearly earn their cost.
 
 ## Workflow
 1. Spec first. Code only what a requirement (R1..) asks for.
-2. Test first. Write the failing test, run it red, commit; then implement, run green, commit.
+2. Test first. Write the failing test, run it red, commit it with `RED_COMMIT=1` (the only
+   allowed hook bypass; never use `--no-verify`); then implement, run green, commit normally.
 3. Never claim something works without pasting the real command output.
 4. Definition of Done: when finishing a slice, or before any PR/submission step, open
    `docs/capstone-dod.md` (do not load it otherwise) and update its checkboxes. Tick a box

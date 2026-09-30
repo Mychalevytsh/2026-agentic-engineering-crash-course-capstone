@@ -9,6 +9,7 @@ export interface Question {
   options: [string, string, string, string];
   correctIndex: 0 | 1 | 2 | 3;
   explanation: string;
+  code?: string;
 }
 
 export interface QuizScore {
