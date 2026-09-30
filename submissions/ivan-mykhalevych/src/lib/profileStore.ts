@@ -111,3 +111,7 @@ export function removeStoredProfile(id: string): void {
   saveProfiles(removeProfile(readProfiles(), id));
   if (!readProfiles().profiles.some((profile) => profile.id === id)) deleteProfileData(id);
 }
+
+export function storageAvailable(): boolean {
+  throw new Error("not implemented");
+}

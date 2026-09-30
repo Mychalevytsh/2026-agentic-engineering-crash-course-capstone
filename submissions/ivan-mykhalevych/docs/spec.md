@@ -107,6 +107,10 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
 - Changes show up in all open components of the tab without a reload, and in other tabs.
 - Removing a profile first saves the removal and deletes the profile's data keys only if the
   removal was really saved. The confirmation names the profile that is active at that moment.
+- `storageAvailable()` is true only when a test value can be written to and removed from
+  `localStorage`; it never throws. When storage is blocked the quiz still works, and the
+  dashboard and logs pages say "Your browser is blocking local storage, so progress cannot be
+  saved." instead of showing the loading text forever.
 - The header never makes the page scroll horizontally, even on a 375 px wide screen with a
   24-character profile name; long names are cut off inside the select.
 - If the stored profile text exists but cannot be parsed, it is copied to
@@ -224,6 +228,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
 - v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.
 - v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.
 - v0.10 (slice 7): R16 moves best scores to per-profile keys and migrates the old global key; R8 text updated accordingly.

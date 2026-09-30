@@ -10,6 +10,7 @@ import {
   removeStoredProfile,
   saveBestScore,
   saveProfiles,
+  storageAvailable,
 } from "./profileStore";
 
 function memoryStorage(failingKeys: string[] = []) {
@@ -132,5 +133,22 @@ describe("per-profile saving (spec R12, R16)", () => {
     storage.setItem(profileKey(BEST_KEY_BASE, "a"), "{}");
     deleteProfileData("a");
     expect(storage.keys()).toEqual([]);
+  });
+});
+
+describe("storageAvailable (spec R11)", () => {
+  it("is true when a test value can be written and removed", () => {
+    const storage = installStorage();
+    expect(storageAvailable()).toBe(true);
+    expect(storage.keys()).toEqual([]);
+  });
+
+  it("is false when writing throws", () => {
+    installStorage(["java-trainer-storage-probe"]);
+    expect(storageAvailable()).toBe(false);
+  });
+
+  it("is false when localStorage does not exist", () => {
+    expect(storageAvailable()).toBe(false);
   });
 });
