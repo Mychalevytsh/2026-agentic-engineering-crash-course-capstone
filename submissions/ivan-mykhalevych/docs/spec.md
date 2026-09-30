@@ -135,6 +135,18 @@ All functions are pure and work on the attempt log of one profile (R12).
   yesterday, the streak still counts from yesterday; if the latest attempt is older, the
   streak is 0. Several attempts on one day count once; input order does not matter.
 
+### R14 Dashboard
+- `summarizeProgress(attempts, now)` returns `{ attemptCount, streak, mastery, weakest }`
+  built from the R13 functions (mastery from `masteryByTopic`, weakest from
+  `weakestTopics` with its defaults, streak from `currentStreak`).
+- The page `/dashboard` shows, for the active profile: the profile name, the number of
+  attempts, the current streak in days, the best score per level (R8, per profile after
+  R16), a bar per topic with "N of M correct (P%)", and the weakest topics.
+- With no attempts it shows "No attempts yet" and a link that starts a quiz instead of
+  empty charts. A topic list with fewer answers than the weakest-topic minimum shows
+  "Not enough answers yet" in place of the weakest list.
+- The header has a "Dashboard" link next to the site title.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -150,6 +162,8 @@ All functions are pure and work on the attempt log of one profile (R12).
   Strings 33, and the weakest topic with at least 3 answers is Strings.
 - Given attempts today, yesterday and the day before, the streak is 3; given attempts today
   and two days ago only, it is 1; given only an attempt two days ago, it is 0.
+- Given no attempts, the summary is 0 attempts, streak 0, no mastery and no weakest topics;
+  the dashboard then shows "No attempts yet".
 - Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
 - Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
@@ -168,6 +182,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.
 - v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).
 - v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
 - v0.5 (slice 2): R11 adds the header profile switcher and the per-profile storage key format.

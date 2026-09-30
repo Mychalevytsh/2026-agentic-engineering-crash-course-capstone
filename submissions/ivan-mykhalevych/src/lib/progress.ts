@@ -57,3 +57,14 @@ export function currentStreak(attempts: Attempt[], now: number): number {
   while (activeDays.has(dayKey(daysBefore(today, start + streak)))) streak += 1;
   return streak;
 }
+
+export interface ProgressSummary {
+  attemptCount: number;
+  streak: number;
+  mastery: TopicMastery[];
+  weakest: TopicMastery[];
+}
+
+export function summarizeProgress(_attempts: Attempt[], _now: number): ProgressSummary {
+  throw new Error("not implemented");
+}
