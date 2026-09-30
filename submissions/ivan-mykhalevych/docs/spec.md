@@ -9,7 +9,7 @@ in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
 - Levels: `junior`, `middle`, `senior`. About 10 questions per level. English only.
-- Static question bank in code. No backend, no login. The only persisted data is the best score per level, in the browser (R8).
+- Static question bank in code. No backend and no authentication. Profiles are just local names in the browser with no passwords (R10); per-profile data (best scores, attempt log) lives in `localStorage`.
 - Next.js App Router, TypeScript strict, Vitest.
 
 ## Requirements
@@ -74,12 +74,35 @@ A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
   the "what does this print?" interview format.
 - The option-length and answer-position rules of R2 apply to code questions too.
 
+### R10 Profiles (storage logic)
+A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no passwords.
+- `parseProfiles(raw)` turns stored JSON into a valid state and never throws. Invalid JSON or
+  shape gives the empty state. Profiles with a missing id or an invalid name are dropped;
+  duplicate ids or names (case-insensitive) keep the first; at most 10 profiles are kept.
+  `activeId` is kept only if that profile exists, otherwise it is the first profile id
+  (`null` when there are none).
+- `validateProfileName(name, existing)` trims the name. It is valid when it has 1 to 24
+  characters and is not used by another profile (case-insensitive). The result is
+  `{ ok: true, name }` or `{ ok: false, error }` with a readable message.
+- `addProfile(state, name, makeId)` returns `{ ok: true, state }` with the new profile added
+  and active, or `{ ok: false, error }` for an invalid name or when 10 profiles exist.
+- `switchProfile(state, id)` activates an existing profile; an unknown id changes nothing.
+- `removeProfile(state, id)` removes it; if it was active, the first remaining profile becomes
+  active (`null` when none remain).
+- `ensureProfile(state, makeId)` adds a profile named "Default" as active when there are none
+  and otherwise returns the state unchanged.
+- No function mutates its input.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the
+  first profile becomes active.
+- Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
+  returns the name "Bob".
 - Given each level, at least one of its questions has a non-empty code snippet.
 - Given stored text `{"junior":80,"bogus":50,"middle":"x"}`, the parsed scores are
   `{ junior: 80 }`; given `not json`, they are `{}`.
@@ -91,9 +114,10 @@ A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
   `correctIndex` still points at the original correct text.
 
 ## Out of scope
-Spaced repetition, flashcards, dashboard, per-question history, authentication, Ukrainian UI.
+Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.4 (slice 1): "no login" becomes "no authentication": local named profiles without passwords (R10). The dashboard is no longer out of scope (added in later slices).
 - v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, both from
   findings of the independent QA run (`docs/qa-plan.md`).
 - v0.2: "no persistence" relaxed to allow best scores per level in localStorage (R8), by the author's decision (improvement step 1).
