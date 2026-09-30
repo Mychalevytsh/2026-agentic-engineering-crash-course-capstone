@@ -34,7 +34,7 @@ export default function DashboardView() {
         <p className="text-muted">Finish a quiz as {profile.name} and your progress will show up here.</p>
         <Link
           href="/"
-          className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-[#1a1206]"
+          className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent"
         >
           Start a quiz
         </Link>

@@ -17,11 +17,14 @@ system setting (`prefers-color-scheme`). Dark is the default.
 | `ink` | `#e8ecf6` | `#1b1f2a` | main text |
 | `muted` | `#9aa4bf` | `#5b6478` | secondary text |
 | `accent` | `#f59e0b` | `#c2410c` | links, primary buttons, highlights |
-| `accent-2` | `#ea580c` | `#ea580c` | gradient partner for accent |
+| `accent-2` | `#ea580c` | `#b45309` | gradient partner for accent |
+| `on-accent` | `#1a1206` | `#ffffff` | text on accent buttons |
 | `good` | `#22c55e` | `#15803d` | correct answer |
 | `bad` | `#f87171` | `#b91c1c` | wrong answer |
 
-Text on `accent` buttons is always `#1a1206` (dark) for contrast.
+Text on accent buttons uses `on-accent`. Every text and background pairing must reach a 4.5:1
+contrast ratio in both themes; a measured audit on 2026-10-01 found the light-theme button
+label at 3.58:1, which is why `on-accent` and the light `accent-2` exist.
 
 ## Typography
 - Headings and code: JetBrains Mono.

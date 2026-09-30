@@ -25,7 +25,7 @@ function reducer(state: QuizOrStartScreen, action: Action): QuizOrStartScreen {
 
 const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
 const primaryBtn =
-  "rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-[#1a1206] transition-opacity hover:opacity-90";
+  "rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent transition-opacity hover:opacity-90";
 const ghostBtn =
   "rounded-xl border border-line px-5 py-2.5 transition-colors hover:border-accent hover:text-accent";
 
