@@ -135,3 +135,26 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 - Set the scope: simple, three levels, English only, trainer not interview simulator.
 - Chose the dark code-editor look and a generated background.
 - Reviews the question bank for accuracy. (Pending: record any corrections.)
+
+## Extension on branch `feature/profiles-dashboard` (not part of the submitted PR branch)
+
+Seven spec-first slices with a red commit (`RED_COMMIT=1`) before each green commit:
+
+| Slice | Requirement | Red | Green |
+|---|---|---|---|
+| 1 Profile storage logic | R10 | `29f9fce` | `7048e24` |
+| 2 Profile switcher | R11 | `3673633` | `8649dd2` |
+| 3 Attempt log (cap 200, per profile) | R12 | `d575b8f` | `a5c5a0d` |
+| 4 Progress logic (mastery, weakest, streak) | R13 | `d03da1e` | `4a15056` |
+| 5 /dashboard | R14 | `213dd25` | `13b1931` |
+| 6 /logs with JSON export | R15 | `c2f875d` | `eff637f` |
+| 7 Best score per profile, migration | R16 | `9e54004` | `3f1e715` |
+| Review fixes (storage tests, safe removal) | R11 | `3b59998` | `e37da59` |
+
+Then the header overflow fix `abc7fc3`. State: `npm run check` 112/112 tests, `next build` OK.
+Checkers: reviewer run 2 and independent QA run 3 (12 of 13 passed, the one failure fixed and
+verified), see `docs/qa-plan.md`. Logic-only slices (1, 4) had nothing to verify in the browser
+when committed; they were exercised through the UI in slices 2, 3 and 5. The two review-fix
+categories (header overflow, removal order) were verified by the author agent, not re-run by the
+independent checker. Slice 0 (the two earlier QA findings) was already done on the PR branch as
+`b52b50e` and `19945a7`, so it was not repeated.

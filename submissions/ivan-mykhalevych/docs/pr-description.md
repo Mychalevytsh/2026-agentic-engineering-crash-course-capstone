@@ -61,3 +61,18 @@ $ cd submissions/ivan-mykhalevych && npm run check
 ```
 
 Run the app: `npm install && npm run dev`, then open http://localhost:3000.
+
+---
+
+## Extended version (branch `feature/profiles-dashboard`, optional to include)
+
+Not part of the `ivan-mykhalevych` branch above. On top of it the extension adds local profiles
+without passwords, a per-profile attempt log (capped at 200), a dashboard with mastery per topic,
+weakest topics and a streak, a `/logs` page with JSON export, and best scores per profile with
+automatic migration of the old data. Seven spec-first slices, each with a failing-test commit
+before the implementation (see the table in `docs/capstone-dod.md`), 112 tests in total, a second
+reviewer run (9 findings fixed or consciously left) and a second independent QA run in the
+built-in browser (12 of 13 checks passed; the failing one, a mobile header overflow with long
+profile names, was fixed and verified). Honest caveats: two logic-only slices could not be
+checked in the browser when committed, the last fixes were verified by the author agent and not
+re-run by the QA agent, and a few low-severity review findings were left open on purpose.
