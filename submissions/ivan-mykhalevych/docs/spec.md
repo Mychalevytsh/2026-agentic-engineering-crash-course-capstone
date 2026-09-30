@@ -39,13 +39,15 @@ Skipped counts as wrong. `percent` is rounded to an integer; empty quiz gives 0.
 - `/quiz/[level]` shows one question at a time. After the user picks an option it shows
   whether it was correct plus the explanation, then a Next button. After the last
   question it shows the score (R4) and a "Try again" button.
+- Keyboard focus is never lost: after an answer is chosen it moves to the Next (or See score)
+  button, and after Start or Next it moves to the new question heading.
 - An unknown level shows a not-found page.
 
 ### R6 Mistakes review
 `getMistakes(questions, answers)` returns, in quiz order, one entry `{ question, chosen }`
 for every question answered wrongly or skipped (`chosen` is `null` when skipped).
-The score screen lists them: question text, the user's answer (or "Skipped"), the
-correct answer and the explanation. With no mistakes it shows "No mistakes - well done!".
+The score screen lists them: question text, the code snippet when the question has one,
+the user's answer (or "Skipped"), the correct answer and the explanation. With no mistakes it shows "No mistakes - well done!".
 
 ### R7 Shuffle
 `shuffleQuestions(questions, rng)` returns a new array with the questions in random order
@@ -92,4 +94,6 @@ A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
 Spaced repetition, flashcards, dashboard, per-question history, authentication, Ukrainian UI.
 
 ## Spec changes
+- v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, both from
+  findings of the independent QA run (`docs/qa-plan.md`).
 - v0.2: "no persistence" relaxed to allow best scores per level in localStorage (R8), by the author's decision (improvement step 1).
