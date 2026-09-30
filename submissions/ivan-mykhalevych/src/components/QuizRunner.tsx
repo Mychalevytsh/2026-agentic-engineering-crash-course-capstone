@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
 import { buildAttempt } from "@/lib/attempts";
-import { saveBestScore } from "@/lib/bestScores";
 import { getMistakes } from "@/lib/mistakes";
-import { logAttempt } from "@/lib/profileStore";
+import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";

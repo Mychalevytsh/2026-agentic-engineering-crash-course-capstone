@@ -3,7 +3,7 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { ATTEMPTS_KEY_BASE, parseAttempts } from "./attempts";
 import type { Attempt } from "./attempts";
-import { BEST_SCORES_KEY, parseBestScores } from "./bestScores";
+import { BEST_KEY_BASE, parseBestScores } from "./bestScores";
 import type { BestScores } from "./bestScores";
 import { PROFILES_KEY, parseProfiles, profileKey } from "./profiles";
 import type { Profile, ProfilesState } from "./profiles";
@@ -33,6 +33,7 @@ export function useAttempts(profileId: string | null): Attempt[] {
 }
 
 export function useBestScores(): BestScores {
-  const storedText = useStoredText(BEST_SCORES_KEY);
+  const profile = useActiveProfile();
+  const storedText = useStoredText(profile === null ? null : profileKey(BEST_KEY_BASE, profile.id));
   return useMemo(() => parseBestScores(storedText), [storedText]);
 }

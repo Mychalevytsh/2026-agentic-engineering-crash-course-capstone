@@ -1,4 +1,5 @@
 import { ATTEMPTS_KEY_BASE, appendAttempt, parseAttempts } from "./attempts";
+import { BEST_KEY_BASE, LEGACY_BEST_SCORES_KEY, mergeStoredBestScores, parseBestScores, withBestScore } from "./bestScores";
 import type { Attempt } from "./attempts";
 import {
   PROFILES_KEY,
@@ -9,6 +10,7 @@ import {
   serializeProfiles,
 } from "./profiles";
 import type { ProfilesState } from "./profiles";
+import type { Level } from "./types";
 
 const CHANGE_EVENT = "java-trainer-change";
 
@@ -63,9 +65,20 @@ export function saveProfiles(state: ProfilesState): void {
   writeStored(PROFILES_KEY, serializeProfiles(state));
 }
 
+function migrateLegacyBestScores(): void {
+  const legacyText = readStored(LEGACY_BEST_SCORES_KEY);
+  const { activeId } = readProfiles();
+  if (legacyText === null || activeId === null) return;
+  const key = profileKey(BEST_KEY_BASE, activeId);
+  const merged = mergeStoredBestScores(readStored(key), legacyText);
+  writeStored(key, merged);
+  if (readStored(key) === merged) removeStored(LEGACY_BEST_SCORES_KEY);
+}
+
 export function ensureStoredProfile(): void {
   const state = readProfiles();
   if (state.profiles.length === 0) saveProfiles(ensureProfile(state, newId));
+  migrateLegacyBestScores();
 }
 
 export function deleteProfileData(id: string): void {
@@ -77,4 +90,11 @@ export function logAttempt(attempt: Attempt): void {
   if (activeId === null) return;
   const key = profileKey(ATTEMPTS_KEY_BASE, activeId);
   writeStored(key, JSON.stringify(appendAttempt(parseAttempts(readStored(key)), attempt)));
+}
+
+export function saveBestScore(level: Level, percent: number): void {
+  const { activeId } = readProfiles();
+  if (activeId === null) return;
+  const key = profileKey(BEST_KEY_BASE, activeId);
+  writeStored(key, JSON.stringify(withBestScore(parseBestScores(readStored(key)), level, percent)));
 }

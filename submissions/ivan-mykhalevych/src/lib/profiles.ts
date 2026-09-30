@@ -1,4 +1,5 @@
 import { ATTEMPTS_KEY_BASE } from "./attempts";
+import { BEST_KEY_BASE } from "./bestScores";
 
 export interface Profile {
   id: string;
@@ -89,7 +90,7 @@ export function ensureProfile(state: ProfilesState, makeId: () => string): Profi
   return { profiles: [profile], activeId: profile.id };
 }
 
-export const PROFILE_DATA_KEY_BASES = [ATTEMPTS_KEY_BASE, "java-trainer-best"];
+export const PROFILE_DATA_KEY_BASES = [ATTEMPTS_KEY_BASE, BEST_KEY_BASE];
 export const PROFILES_KEY = "java-trainer-profiles";
 
 export function serializeProfiles(state: ProfilesState): string {
