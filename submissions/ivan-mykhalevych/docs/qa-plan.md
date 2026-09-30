@@ -45,6 +45,11 @@ Report: PASS / FAIL / NOT TESTED per item with evidence, then real bugs with rep
 | Decorative background text overlaps the heading on mobile, still readable | info | Not changed |
 | Try again goes straight to a reshuffled question 1 | info | Consistent with R7, not changed |
 
+Fix verification (by the author agent in the built-in browser, not independent): focus lands on
+the question heading after Start and after Next, on the Next button after an answer, and on the
+score heading at the end; across 6 attempts all 9 wrongly answered code questions showed their
+code in the review. `npm run check` 41/41. A second independent run was not repeated (KISS).
+
 Not tested by the agent: a contrast audit, screen-reader behaviour, a browser refresh in the
 middle of a quiz, and blocked-storage mode.
 
