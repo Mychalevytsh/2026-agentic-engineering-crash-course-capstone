@@ -66,9 +66,19 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 - [x] **SDD.** `docs/spec.md` and `docs/design.md`. For R6/R7 the spec change is in
       `d27d97d`, before the code in `361332d`. (The very first commit contains spec and
       first code together, so use the later commits as proof of order.)
-- [ ] **Context engineering.** `AGENTS.md` exists. Still needed: proof that a rule fired,
-      e.g. a pre-commit hook that blocks a commit when `npm run check` fails, with its
-      output recorded.
+- [x] **Context engineering.** Rules in `AGENTS.md` (KISS main rule `b9f8acd`; DoD
+      read-on-demand rule `804315f`, which keeps static context small). Deterministic
+      guard: `.githooks/pre-commit` (commit `024c65f`) runs `npm run check`. Blocked action,
+      recorded 2026-09-30 by committing a deliberately failing test
+      (`expect(1).toBe(2)`; the demo file was removed afterwards, never committed):
+      ```
+      pre-commit: running npm run check in submissions/ivan-mykhalevych ...
+       FAIL  src/lib/zz-hook-demo.test.ts > deliberately failing
+      AssertionError: expected 1 to be 2 // Object.is equality
+       Tests  1 failed | 29 passed (30)
+      pre-commit: check FAILED - commit blocked.     (git commit exit status 1, HEAD unchanged)
+      ```
+      The same hook let the real commit `024c65f` through with 29/29 tests passing.
 - [ ] **Loops.** Still needed: one recorded run of a command that drives the agent to green
       (iterations and where it stopped).
 - [ ] **maker != checker.** Still needed: one reviewer subagent run

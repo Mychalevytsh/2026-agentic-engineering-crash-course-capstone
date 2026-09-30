@@ -7,3 +7,5 @@ senior) as a short multiple-choice quiz with a score.
 - Agent rules: `AGENTS.md`
 - Check everything: `npm run check`
 - Run: `npm run dev`, then open http://localhost:3000
+- Enable the pre-commit check once per clone:
+  `git config core.hooksPath submissions/ivan-mykhalevych/.githooks`
