@@ -9,14 +9,13 @@ import { scoreQuiz } from "@/lib/scoring";
 import { shuffleQuestions } from "@/lib/shuffle";
 import type { Question } from "@/lib/types";
 
-// null = the start screen, before a shuffled quiz exists.
-type State = QuizState | null;
+type QuizOrStartScreen = QuizState | null;
 type Action =
   | { type: "start"; questions: Question[] }
   | { type: "select"; option: number }
   | { type: "next" };
 
-function reducer(state: State, action: Action): State {
+function reducer(state: QuizOrStartScreen, action: Action): QuizOrStartScreen {
   if (action.type === "start") return initQuiz(action.questions);
   if (state === null) return state;
   return action.type === "select" ? selectOption(state, action.option) : nextQuestion(state);

@@ -1,7 +1,6 @@
 import type { Level, Question } from "./types";
 
 export const QUESTION_BANK: Question[] = [
-  // ---------- junior ----------
   {
     id: "j1",
     level: "junior",
@@ -68,7 +67,6 @@ export const QUESTION_BANK: Question[] = [
       "A static method is called on the class itself and has no this reference, so it cannot use instance fields directly.",
   },
 
-  // ---------- middle ----------
   {
     id: "m1",
     level: "middle",
@@ -145,7 +143,6 @@ export const QUESTION_BANK: Question[] = [
       "Java 8 added default and static methods to interfaces. Interfaces still cannot hold instance state or constructors.",
   },
 
-  // ---------- senior ----------
   {
     id: "s1",
     level: "senior",
@@ -222,7 +219,6 @@ export const QUESTION_BANK: Question[] = [
       "Virtual threads make blocking cheap, so they shine with many I/O-bound tasks. They add nothing for CPU-bound work, which is limited by cores.",
   },
 
-  // ---------- junior (more) ----------
   {
     id: "j6",
     level: "junior",
@@ -294,7 +290,6 @@ export const QUESTION_BANK: Question[] = [
       "break leaves the innermost loop (or switch). continue is the statement that skips to the next iteration.",
   },
 
-  // ---------- middle (more) ----------
   {
     id: "m6",
     level: "middle",
@@ -366,7 +361,6 @@ export const QUESTION_BANK: Question[] = [
       "Callable.call() returns a value and may throw checked exceptions. Runnable.run() returns nothing and cannot throw checked exceptions.",
   },
 
-  // ---------- senior (more) ----------
   {
     id: "s6",
     level: "senior",
