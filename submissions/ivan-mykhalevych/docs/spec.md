@@ -106,6 +106,22 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   that asks for confirmation.
 - Changes show up in all open components of the tab without a reload, and in other tabs.
 
+### R12 Attempt log
+An attempt is `{ at, level, total, correct, percent, results }`: `at` is the finish time in
+epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic, correct }`
+(a skipped question counts as incorrect).
+- `buildAttempt(level, questions, answers, now)` builds the attempt of a finished quiz; `total`,
+  `correct` and `percent` follow R4.
+- `parseAttempts(raw)` turns stored JSON into a list and never throws. Invalid JSON or a
+  non-array gives `[]`. Entries with a missing or wrongly typed field, an unknown level, a
+  `correct` above `total`, or a `percent` outside 0..100 are dropped. Only the newest 200
+  entries are kept.
+- `appendAttempt(log, attempt, cap)` returns a new list with the attempt last and only the
+  newest `cap` entries (default 200, `MAX_ATTEMPTS`). The input is never mutated.
+- The log is stored as JSON under `profileKey("java-trainer-attempts", activeProfileId)`.
+  When a quiz finishes, exactly one attempt is appended for the active profile; switching
+  profile afterwards on the score screen does not log it again.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -114,6 +130,9 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
 - Given level `senior`, only senior questions are returned.
 - Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the
   first profile becomes active.
+- Given 200 logged attempts, appending one keeps 200 and drops the oldest.
+- Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the attempt has
+  correct 1, total 3, percent 33 and results flagged true, false, false.
 - Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
 - Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
@@ -132,6 +151,7 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
 - v0.5 (slice 2): R11 adds the header profile switcher and the per-profile storage key format.
 - v0.4 (slice 1): "no login" becomes "no authentication": local named profiles without passwords (R10). The dashboard is no longer out of scope (added in later slices).
 - v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, both from
