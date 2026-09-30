@@ -92,6 +92,7 @@ export function ensureProfile(state: ProfilesState, makeId: () => string): Profi
 
 export const PROFILE_DATA_KEY_BASES = [ATTEMPTS_KEY_BASE, BEST_KEY_BASE];
 export const PROFILES_KEY = "java-trainer-profiles";
+export const PROFILES_BACKUP_KEY = "java-trainer-profiles-backup";
 
 export function serializeProfiles(state: ProfilesState): string {
   return JSON.stringify(state);

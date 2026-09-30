@@ -105,6 +105,11 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   button) that shows the R10 validation error, and a "Remove" button for the active profile
   that asks for confirmation.
 - Changes show up in all open components of the tab without a reload, and in other tabs.
+- Removing a profile first saves the removal and deletes the profile's data keys only if the
+  removal was really saved. The confirmation names the profile that is active at that moment.
+- If the stored profile text exists but cannot be parsed, it is copied to
+  `java-trainer-profiles-backup` before a new "Default" profile replaces it, so no data is
+  silently overwritten.
 
 ### R12 Attempt log
 An attempt is `{ at, level, total, correct, percent, results }`: `at` is the finish time in
@@ -217,6 +222,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.
 - v0.10 (slice 7): R16 moves best scores to per-profile keys and migrates the old global key; R8 text updated accordingly.
 - v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name. Corrected after browser verification: the Export button is absent, not disabled, when there are no attempts.
 - v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.

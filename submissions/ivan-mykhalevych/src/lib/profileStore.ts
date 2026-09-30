@@ -98,3 +98,7 @@ export function saveBestScore(level: Level, percent: number): void {
   const key = profileKey(BEST_KEY_BASE, activeId);
   writeStored(key, JSON.stringify(withBestScore(parseBestScores(readStored(key)), level, percent)));
 }
+
+export function removeStoredProfile(_id: string): void {
+  throw new Error("not implemented");
+}
