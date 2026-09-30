@@ -9,7 +9,7 @@ in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
 - Levels: `junior`, `middle`, `senior`. About 10 questions per level. English only.
-- Static question bank in code. No backend, no login, no persistence.
+- Static question bank in code. No backend, no login. The only persisted data is the best score per level, in the browser (R8).
 - Next.js App Router, TypeScript strict, Vitest.
 
 ## Requirements
@@ -55,19 +55,33 @@ still points at the same option text. Inputs are never mutated; `rng` is injecte
 A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
 (shuffling happens in the click handler, so server and client HTML always match).
 
+### R8 Best score per level
+- `parseBestScores(raw)` turns stored text into `{ [level]: percent }`. `null`, invalid JSON,
+  a non-object, unknown level names and values that are not integers 0..100 are ignored;
+  it never throws.
+- `withBestScore(scores, level, percent)` returns a new object in which that level holds the
+  higher of the old and new percent. The input is never mutated.
+- When a quiz finishes, its percent is stored as JSON in `localStorage` under the key
+  `java-trainer-best-scores`. Storage failures (blocked, full) are ignored.
+- Each level card on `/` shows "Best: N%" when a score exists, and nothing otherwise.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given stored text `{"junior":80,"bogus":50,"middle":"x"}`, the parsed scores are
+  `{ junior: 80 }`; given `not json`, they are `{}`.
+- Given `{ junior: 80 }`, recording 60 for junior keeps 80, recording 90 gives 90, and the
+  original object is unchanged.
 - Given questions with correct indexes 0,1,2 and answers [0, 2, null], the mistakes are
   question 2 (chosen 2) and question 3 (chosen null).
 - Given any seeded rng, a shuffled question keeps the same option texts and its
   `correctIndex` still points at the original correct text.
 
 ## Out of scope
-Spaced repetition, flashcards, dashboard, persistence, authentication, Ukrainian UI.
+Spaced repetition, flashcards, dashboard, per-question history, authentication, Ukrainian UI.
 
 ## Spec changes
-(none yet)
+- v0.2: "no persistence" relaxed to allow best scores per level in localStorage (R8), by the author's decision (improvement step 1).
