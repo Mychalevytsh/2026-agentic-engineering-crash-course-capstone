@@ -136,7 +136,7 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 - Chose the dark code-editor look and a generated background.
 - Reviews the question bank for accuracy. (Pending: record any corrections.)
 
-## Extension on branch `feature/profiles-dashboard` (not part of the submitted PR branch)
+## Profiles, dashboard and logs (built on `feature/profiles-dashboard`, merged into `ivan-mykhalevych`)
 
 Seven spec-first slices with a red commit (`RED_COMMIT=1`) before each green commit:
 

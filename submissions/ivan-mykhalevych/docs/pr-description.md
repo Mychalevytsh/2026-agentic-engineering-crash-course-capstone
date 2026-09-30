@@ -64,9 +64,9 @@ Run the app: `npm install && npm run dev`, then open http://localhost:3000.
 
 ---
 
-## Extended version (branch `feature/profiles-dashboard`, optional to include)
+## Profiles, dashboard and logs (merged from `feature/profiles-dashboard`)
 
-Not part of the `ivan-mykhalevych` branch above. On top of it the extension adds local profiles
+These features were built after the core project above and merged into this branch as a fast-forward. They add local profiles
 without passwords, a per-profile attempt log (capped at 200), a dashboard with mastery per topic,
 weakest topics and a streak, a `/logs` page with JSON export, and best scores per profile with
 automatic migration of the old data. Seven spec-first slices, each with a failing-test commit
