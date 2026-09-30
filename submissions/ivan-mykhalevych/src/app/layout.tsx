@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
 import Background from "@/components/Background";
+import ProfileSwitcher from "@/components/ProfileSwitcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,6 +28,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="relative min-h-full flex flex-col">
         <Background />
+        <header className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-5 pt-5">
+          <Link href="/" className="font-mono text-sm text-muted hover:text-accent">
+            Java Trainer
+          </Link>
+          <ProfileSwitcher />
+        </header>
         {children}
       </body>
     </html>
