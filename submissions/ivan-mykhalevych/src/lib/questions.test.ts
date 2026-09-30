@@ -34,6 +34,19 @@ describe("question bank rules (spec R2)", () => {
   });
 });
 
+describe("code-snippet questions (spec R9)", () => {
+  it.each(LEVELS)("has at least one %s question with code", (level) => {
+    const withCode = QUESTION_BANK.filter((q) => q.level === level && q.code !== undefined);
+    expect(withCode.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("never has an empty code snippet", () => {
+    for (const q of QUESTION_BANK) {
+      if (q.code !== undefined) expect(q.code.trim(), q.id).not.toBe("");
+    }
+  });
+});
+
 describe("getQuestions (spec R3)", () => {
   it.each(LEVELS)("returns only %s questions in bank order", (level) => {
     const expected = QUESTION_BANK.filter((q) => q.level === level);

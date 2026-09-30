@@ -16,7 +16,7 @@ in a short multiple-choice quiz and see a score.
 
 ### R1 Question model
 A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
-`correctIndex` (0..3), `explanation`.
+`correctIndex` (0..3), `explanation`, and an optional `code` (a Java snippet).
 
 ### R2 Question bank rules (enforced by tests)
 - At least 10 questions per level.
@@ -65,12 +65,20 @@ A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
   `java-trainer-best-scores`. Storage failures (blocked, full) are ignored.
 - Each level card on `/` shows "Best: N%" when a score exists, and nothing otherwise.
 
+### R9 Code-snippet questions
+- A question may carry `code`. When present it is non-empty and is shown in a code block
+  between the question text and the options; questions without `code` look as before.
+- The bank has at least one question with `code` at every level, so the trainer also covers
+  the "what does this print?" interview format.
+- The option-length and answer-position rules of R2 apply to code questions too.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given each level, at least one of its questions has a non-empty code snippet.
 - Given stored text `{"junior":80,"bogus":50,"middle":"x"}`, the parsed scores are
   `{ junior: 80 }`; given `not json`, they are `{}`.
 - Given `{ junior: 80 }`, recording 60 for junior keeps 80, recording 90 gives 90, and the
