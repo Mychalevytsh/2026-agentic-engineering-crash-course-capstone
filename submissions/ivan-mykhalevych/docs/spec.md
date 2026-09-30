@@ -122,6 +122,19 @@ epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic
   When a quiz finishes, exactly one attempt is appended for the active profile; switching
   profile afterwards on the score screen does not log it again.
 
+### R13 Progress
+All functions are pure and work on the attempt log of one profile (R12).
+- `masteryByTopic(attempts)` adds up every result per topic and returns
+  `{ topic, correct, total, percent }` entries (percent rounded to an integer), sorted by
+  topic name. No attempts gives `[]`.
+- `weakestTopics(mastery, count, minAnswered)` keeps topics with at least `minAnswered`
+  answers (default 3), orders them by percent ascending and then by topic name, and returns
+  the first `count` (default 3).
+- `currentStreak(attempts, now)` is the number of consecutive local calendar days with at
+  least one attempt, counted back from today. If there is no attempt today but there is one
+  yesterday, the streak still counts from yesterday; if the latest attempt is older, the
+  streak is 0. Several attempts on one day count once; input order does not matter.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -133,6 +146,10 @@ epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic
 - Given 200 logged attempts, appending one keeps 200 and drops the oldest.
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the attempt has
   correct 1, total 3, percent 33 and results flagged true, false, false.
+- Given results Strings 1 of 3 correct and OOP 2 of 2 correct, the mastery is OOP 100 and
+  Strings 33, and the weakest topic with at least 3 answers is Strings.
+- Given attempts today, yesterday and the day before, the streak is 3; given attempts today
+  and two days ago only, it is 1; given only an attempt two days ago, it is 0.
 - Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
 - Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
@@ -151,6 +168,7 @@ epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).
 - v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
 - v0.5 (slice 2): R11 adds the header profile switcher and the per-profile storage key format.
 - v0.4 (slice 1): "no login" becomes "no authentication": local named profiles without passwords (R10). The dashboard is no longer out of scope (added in later slices).
