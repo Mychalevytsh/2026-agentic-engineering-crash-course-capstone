@@ -8,7 +8,7 @@ Let a candidate practise Java interview questions by level (junior, middle, seni
 in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
-- Levels: `junior`, `middle`, `senior`. About 5 questions per level. English only.
+- Levels: `junior`, `middle`, `senior`. About 10 questions per level. English only.
 - Static question bank in code. No backend, no login, no persistence.
 - Next.js App Router, TypeScript strict, Vitest.
 
@@ -19,7 +19,7 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `correctIndex` (0..3), `explanation`.
 
 ### R2 Question bank rules (enforced by tests)
-- At least 5 questions per level.
+- At least 10 questions per level.
 - Ids are unique.
 - Every question satisfies R1.
 - Answer options in one question are similar in length: longest <= 2x shortest,
@@ -41,12 +41,30 @@ Skipped counts as wrong. `percent` is rounded to an integer; empty quiz gives 0.
   question it shows the score (R4) and a "Try again" button.
 - An unknown level shows a not-found page.
 
+### R6 Mistakes review
+`getMistakes(questions, answers)` returns, in quiz order, one entry `{ question, chosen }`
+for every question answered wrongly or skipped (`chosen` is `null` when skipped).
+The score screen lists them: question text, the user's answer (or "Skipped"), the
+correct answer and the explanation. With no mistakes it shows "No mistakes - well done!".
+
+### R7 Shuffle
+`shuffleQuestions(questions, rng)` returns a new array with the questions in random order
+and, inside each question, the options in random order. `correctIndex` is updated so it
+still points at the same option text. Inputs are never mutated; `rng` is injected
+(`() => number` in [0, 1)) so tests are deterministic.
+A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
+(shuffling happens in the click handler, so server and client HTML always match).
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given questions with correct indexes 0,1,2 and answers [0, 2, null], the mistakes are
+  question 2 (chosen 2) and question 3 (chosen null).
+- Given any seeded rng, a shuffled question keeps the same option texts and its
+  `correctIndex` still points at the original correct text.
 
 ## Out of scope
 Spaced repetition, flashcards, dashboard, persistence, authentication, Ukrainian UI.

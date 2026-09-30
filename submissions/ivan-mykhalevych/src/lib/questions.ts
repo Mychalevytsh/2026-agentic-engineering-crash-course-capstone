@@ -221,6 +221,217 @@ export const QUESTION_BANK: Question[] = [
     explanation:
       "Virtual threads make blocking cheap, so they shine with many I/O-bound tasks. They add nothing for CPU-bound work, which is limited by cores.",
   },
+
+  // ---------- junior (more) ----------
+  {
+    id: "j6",
+    level: "junior",
+    topic: "Collections",
+    text: "Which of these collections does not allow duplicate elements?",
+    options: ["ArrayList", "HashSet", "LinkedList", "ArrayDeque"],
+    correctIndex: 1,
+    explanation:
+      "A Set rejects duplicates, as decided by equals() and hashCode(). Lists and deques accept repeated elements.",
+  },
+  {
+    id: "j7",
+    level: "junior",
+    topic: "Strings",
+    text: "What happens when you call toUpperCase() on a String?",
+    options: [
+      "It modifies the original string in place",
+      "It returns a new string object",
+      "It throws an UnsupportedOperationException",
+      "It converts only the first character",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Strings are immutable. Methods such as toUpperCase() return a new String and leave the original unchanged.",
+  },
+  {
+    id: "j8",
+    level: "junior",
+    topic: "Basics",
+    text: "What is the correct signature of the standard main method?",
+    options: [
+      "public static void main(String[] args)",
+      "public void main(String[] args)",
+      "static public int main(String[] args)",
+      "public static main(String[] args)",
+    ],
+    correctIndex: 0,
+    explanation:
+      "The JVM looks for a public static void main(String[]) method. It must be static so no instance is needed, and it returns nothing.",
+  },
+  {
+    id: "j9",
+    level: "junior",
+    topic: "OOP",
+    text: "What is method overloading?",
+    options: [
+      "Calling a method from itself",
+      "Same signature in a subclass",
+      "Hiding a method with a field",
+      "Same name, different parameter lists",
+    ],
+    correctIndex: 3,
+    explanation:
+      "Overloading means several methods share a name but differ in parameters. Redefining an inherited method with the same signature is overriding.",
+  },
+  {
+    id: "j10",
+    level: "junior",
+    topic: "Basics",
+    text: "What does the break statement do inside a loop?",
+    options: [
+      "Skips to the next iteration",
+      "Restarts the loop from zero",
+      "Exits the nearest enclosing loop",
+      "Stops the whole program run",
+    ],
+    correctIndex: 2,
+    explanation:
+      "break leaves the innermost loop (or switch). continue is the statement that skips to the next iteration.",
+  },
+
+  // ---------- middle (more) ----------
+  {
+    id: "m6",
+    level: "middle",
+    topic: "Collections",
+    text: "Which Map implementation keeps its keys in sorted order?",
+    options: ["HashMap", "TreeMap", "LinkedHashMap", "WeakHashMap"],
+    correctIndex: 1,
+    explanation:
+      "TreeMap keeps keys sorted by natural order or a Comparator. LinkedHashMap keeps insertion order, and HashMap makes no ordering promise.",
+  },
+  {
+    id: "m7",
+    level: "middle",
+    topic: "Exceptions",
+    text: "What does a try-with-resources statement do?",
+    options: [
+      "Closes resources automatically at the end",
+      "Retries the block until it succeeds",
+      "Catches every exception silently",
+      "Runs the block on another thread",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Resources that implement AutoCloseable are closed automatically when the block ends, even if an exception is thrown.",
+  },
+  {
+    id: "m8",
+    level: "middle",
+    topic: "OOP",
+    text: "What is the contract between equals() and hashCode()?",
+    options: [
+      "Equal hash codes imply equal objects",
+      "hashCode() must be unique per object",
+      "They must be overridden separately",
+      "Equal objects must have equal hash codes",
+    ],
+    correctIndex: 3,
+    explanation:
+      "If a.equals(b) is true, both must return the same hashCode(). The reverse is not required: different objects may collide.",
+  },
+  {
+    id: "m9",
+    level: "middle",
+    topic: "Generics",
+    text: "What does type erasure mean for Java generics?",
+    options: [
+      "Types are checked only at runtime",
+      "Primitive types are boxed automatically",
+      "Generic type information is removed after compilation",
+      "Generics are replaced by Object fields",
+    ],
+    correctIndex: 2,
+    explanation:
+      "The compiler checks generic types and then erases them, so at runtime a List<String> and a List<Integer> are the same class.",
+  },
+  {
+    id: "m10",
+    level: "middle",
+    topic: "Concurrency",
+    text: "How does Callable differ from Runnable?",
+    options: [
+      "Callable returns a result and can throw",
+      "Runnable is only for daemon threads",
+      "Callable cannot be used with executors",
+      "Runnable always runs in a thread pool",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Callable.call() returns a value and may throw checked exceptions. Runnable.run() returns nothing and cannot throw checked exceptions.",
+  },
+
+  // ---------- senior (more) ----------
+  {
+    id: "s6",
+    level: "senior",
+    topic: "JVM",
+    text: "Where does modern HotSpot keep class metadata?",
+    options: ["Metaspace", "Java heap", "Thread stack", "Code cache"],
+    correctIndex: 0,
+    explanation:
+      "Since Java 8, class metadata lives in Metaspace, which uses native memory. It replaced the old permanent generation.",
+  },
+  {
+    id: "s7",
+    level: "senior",
+    topic: "JVM",
+    text: "What is the main goal of the G1 garbage collector?",
+    options: [
+      "Running without any stop-the-world phases",
+      "Predictable pause times on large heaps",
+      "Compressing the bytecode on disk",
+      "Zero memory usage by the application",
+    ],
+    correctIndex: 1,
+    explanation:
+      "G1 splits the heap into regions and collects the most profitable ones first, aiming to meet a target pause time. It still has short stop-the-world phases.",
+  },
+  {
+    id: "s8",
+    level: "senior",
+    topic: "Concurrency",
+    text: "What is a classic cause of a deadlock?",
+    options: [
+      "Using too many daemon threads",
+      "Calling wait() inside a loop",
+      "Threads taking locks in different orders",
+      "Reading a volatile field twice",
+    ],
+    correctIndex: 2,
+    explanation:
+      "If thread A holds lock 1 and waits for lock 2 while thread B holds lock 2 and waits for lock 1, neither can proceed. A fixed global lock order prevents it.",
+  },
+  {
+    id: "s9",
+    level: "senior",
+    topic: "Design",
+    text: "Why is composition often preferred over inheritance?",
+    options: [
+      "It makes objects faster to create",
+      "It removes the need for interfaces",
+      "It lets you extend several classes",
+      "It reduces coupling to a parent class",
+    ],
+    correctIndex: 3,
+    explanation:
+      "Inheritance ties a subclass to its parent's implementation. Composition lets you swap behaviour behind an interface without that tight coupling.",
+  },
+  {
+    id: "s10",
+    level: "senior",
+    topic: "Spring",
+    text: "What is the default scope of a Spring bean?",
+    options: ["prototype", "singleton", "request", "session"],
+    correctIndex: 1,
+    explanation:
+      "By default Spring creates one shared instance per container (singleton). Mutable state in singleton beans therefore needs care across threads.",
+  },
 ];
 
 export function getQuestions(level: Level): Question[] {

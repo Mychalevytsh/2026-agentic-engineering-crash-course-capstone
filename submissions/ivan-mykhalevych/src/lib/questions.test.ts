@@ -3,8 +3,8 @@ import { QUESTION_BANK, getQuestions } from "./questions";
 import { LEVELS } from "./types";
 
 describe("question bank rules (spec R2)", () => {
-  it.each(LEVELS)("has at least 5 questions for %s", (level) => {
-    expect(QUESTION_BANK.filter((q) => q.level === level).length).toBeGreaterThanOrEqual(5);
+  it.each(LEVELS)("has at least 10 questions for %s", (level) => {
+    expect(QUESTION_BANK.filter((q) => q.level === level).length).toBeGreaterThanOrEqual(10);
   });
 
   it("has unique ids", () => {
