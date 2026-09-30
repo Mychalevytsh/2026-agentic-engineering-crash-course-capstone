@@ -63,8 +63,8 @@ A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
   it never throws.
 - `withBestScore(scores, level, percent)` returns a new object in which that level holds the
   higher of the old and new percent. The input is never mutated.
-- When a quiz finishes, its percent is stored as JSON in `localStorage` under the key
-  `java-trainer-best-scores`. Storage failures (blocked, full) are ignored.
+- When a quiz finishes, its percent is stored as JSON in `localStorage` under the active
+  profile's best-score key (R16; originally one global key). Storage failures (blocked, full) are ignored.
 - Each level card on `/` shows "Best: N%" when a score exists, and nothing otherwise.
 
 ### R9 Code-snippet questions
@@ -162,6 +162,18 @@ All functions are pure and work on the attempt log of one profile (R12).
   not shown at all.
 - The header has a "Logs" link next to "Dashboard".
 
+### R16 Best score per profile and migration
+- Best scores are stored per profile under `profileKey("java-trainer-best", profileId)`. Saving
+  at the end of a quiz, the "Best: N%" label on the level cards (R8) and the dashboard (R14)
+  all use the active profile's scores.
+- `mergeBestScores(a, b)` returns a new object that holds, per level, the higher of the two
+  scores; a level present in only one of them is kept. Inputs are never mutated.
+- `mergeStoredBestScores(profileText, legacyText)` parses both texts with `parseBestScores`
+  (invalid or missing text counts as empty) and returns the JSON text of their merge.
+- Migration: scores stored under the old global key `java-trainer-best-scores` are merged
+  into the active profile's scores and the old key is then removed. It runs automatically
+  when the app loads, after the default profile exists, and only while the old key exists.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
@@ -182,6 +194,11 @@ All functions are pure and work on the attempt log of one profile (R12).
 - Given the name "Ann Lee" exported on 2026-09-30, the file name is
   `java-trainer-ann-lee-2026-09-30.json`; given the name "!!!" it is
   `java-trainer-profile-2026-09-30.json`.
+- Given the old key `{"junior":80}` and a profile holding `{"junior":90,"middle":10}`, after
+  migration the profile holds `{"junior":90,"middle":10}` and the old key is gone; given a
+  profile with no scores, it holds `{"junior":80}`.
+- Given two profiles, finishing a quiz as the first leaves the second profile's card without
+  a "Best" label.
 - Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
 - Given a serialized state, `parseProfiles` returns the same state.
 - Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
@@ -200,6 +217,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
+- v0.10 (slice 7): R16 moves best scores to per-profile keys and migrates the old global key; R8 text updated accordingly.
 - v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name. Corrected after browser verification: the Export button is absent, not disabled, when there are no attempts.
 - v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.
 - v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).

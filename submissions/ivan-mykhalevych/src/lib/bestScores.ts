@@ -47,3 +47,13 @@ export function saveBestScore(level: Level, percent: number): void {
     return;
   }
 }
+
+export const BEST_KEY_BASE = "java-trainer-best";
+
+export function mergeBestScores(_a: BestScores, _b: BestScores): BestScores {
+  throw new Error("not implemented");
+}
+
+export function mergeStoredBestScores(_profileText: string | null, _legacyText: string | null): string {
+  throw new Error("not implemented");
+}
