@@ -5,6 +5,9 @@ export interface Mistake {
   chosen: number | null;
 }
 
-export function getMistakes(_questions: Question[], _answers: (number | null)[]): Mistake[] {
-  throw new Error("not implemented");
+export function getMistakes(questions: Question[], answers: (number | null)[]): Mistake[] {
+  return questions.flatMap((question, i) => {
+    const chosen = answers[i] ?? null;
+    return chosen === question.correctIndex ? [] : [{ question, chosen }];
+  });
 }
