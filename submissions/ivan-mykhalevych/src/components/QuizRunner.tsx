@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
+import { buildAttempt } from "@/lib/attempts";
 import { saveBestScore } from "@/lib/bestScores";
 import { getMistakes } from "@/lib/mistakes";
+import { logAttempt } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
@@ -37,8 +39,14 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     if (screen !== "start") headingRef.current?.focus();
   }, [screen]);
 
+  const loggedQuiz = useRef<QuizState | null>(null);
+
   useEffect(() => {
-    if (state?.finished) saveBestScore(level, scoreQuiz(state.questions, state.answers).percent);
+    if (!state?.finished || loggedQuiz.current === state) return;
+    loggedQuiz.current = state;
+    const attempt = buildAttempt(level, state.questions, state.answers, Date.now());
+    saveBestScore(level, attempt.percent);
+    logAttempt(attempt);
   }, [state, level]);
 
   const start = () => dispatch({ type: "start", questions: shuffleQuestions(questions, Math.random) });

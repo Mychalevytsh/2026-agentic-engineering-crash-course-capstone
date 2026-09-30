@@ -1,3 +1,5 @@
+import { ATTEMPTS_KEY_BASE, appendAttempt, parseAttempts } from "./attempts";
+import type { Attempt } from "./attempts";
 import {
   PROFILES_KEY,
   PROFILE_DATA_KEY_BASES,
@@ -68,4 +70,11 @@ export function ensureStoredProfile(): void {
 
 export function deleteProfileData(id: string): void {
   for (const base of PROFILE_DATA_KEY_BASES) removeStored(profileKey(base, id));
+}
+
+export function logAttempt(attempt: Attempt): void {
+  const { activeId } = readProfiles();
+  if (activeId === null) return;
+  const key = profileKey(ATTEMPTS_KEY_BASE, activeId);
+  writeStored(key, JSON.stringify(appendAttempt(parseAttempts(readStored(key)), attempt)));
 }
