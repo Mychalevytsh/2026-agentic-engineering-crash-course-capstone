@@ -1,6 +1,8 @@
 # Java Interview Prep — agent rules
 
 Read `docs/spec.md` before writing code. The spec is the source of truth.
+`docs/capstone-dod.md` is the main instruction and Definition of Done (deadline 4 Oct);
+`docs/design.md` holds the design tokens.
 
 ## Workflow
 1. Spec first. Code only what a requirement (R1..) asks for.
