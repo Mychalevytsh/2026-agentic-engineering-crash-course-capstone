@@ -79,10 +79,23 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       pre-commit: check FAILED - commit blocked.     (git commit exit status 1, HEAD unchanged)
       ```
       The same hook let the real commit `024c65f` through with 29/29 tests passing.
-- [ ] **Loops.** Still needed: one recorded run of a command that drives the agent to green
-      (iterations and where it stopped).
-- [ ] **maker != checker.** Still needed: one reviewer subagent run
-      (`.claude/agents/reviewer.md`) and a line on what it found (or that it found nothing).
+- [x] **Loops.** One recorded review-fix loop: reviewer report -> fixes -> gate
+      `npm run check` (lint + typecheck + tests), max 3 iterations. Result: converged in
+      **1 iteration**, gate green (28/28 tests), committed as `bc0c207`. It is a small loop;
+      a larger one was not needed (KISS).
+- [x] **maker != checker.** Reviewer definition: `.claude/agents/reviewer.md` (`b47bbf8`,
+      read-only tools, told to report only real findings). Run once on 2026-09-30, about
+      74k subagent tokens. Honest note: the new agent file is only discovered at session
+      start, so this run used a general-purpose sonnet agent instructed to follow
+      `reviewer.md` exactly; in a fresh session it loads as `reviewer`.
+      **What it found** (no wrong marked answers, but real issues; all verified by me):
+      j5 and j8 had defensible "wrong" options (static methods are hidden, and instance
+      `main` exists in newer Java), s6 "Java heap" was partly defensible, m9's correct option
+      was the longest (the guessing pattern R2 targets), and `restartQuiz` was dead code
+      against KISS. Fixed in `bc0c207`. Not changed: s2 (correct option merely "more
+      technical", low) and m3's "never cached at all" wording (low; option is wrong either
+      way). I did not independently verify the reviewer's JEP 445 timeline claim, only
+      softened the wording so it holds either way.
 - [ ] Optional: autonomy log (`templates/autonomy-log.md`), Project Factory. Skipped unless
       time allows.
 
