@@ -1,7 +1,6 @@
 import type { Level, Question } from "./types";
 
 export const QUESTION_BANK: Question[] = [
-  // ---------- junior ----------
   {
     id: "j1",
     level: "junior",
@@ -59,7 +58,7 @@ export const QUESTION_BANK: Question[] = [
     text: "What does the static modifier on a method mean?",
     options: [
       "It belongs to the class, not an instance",
-      "It cannot be overridden by anyone ever",
+      "It can only be called from main",
       "It runs once at program startup time",
       "It is only visible inside its package",
     ],
@@ -68,7 +67,6 @@ export const QUESTION_BANK: Question[] = [
       "A static method is called on the class itself and has no this reference, so it cannot use instance fields directly.",
   },
 
-  // ---------- middle ----------
   {
     id: "m1",
     level: "middle",
@@ -145,7 +143,6 @@ export const QUESTION_BANK: Question[] = [
       "Java 8 added default and static methods to interfaces. Interfaces still cannot hold instance state or constructors.",
   },
 
-  // ---------- senior ----------
   {
     id: "s1",
     level: "senior",
@@ -222,7 +219,6 @@ export const QUESTION_BANK: Question[] = [
       "Virtual threads make blocking cheap, so they shine with many I/O-bound tasks. They add nothing for CPU-bound work, which is limited by cores.",
   },
 
-  // ---------- junior (more) ----------
   {
     id: "j6",
     level: "junior",
@@ -255,13 +251,13 @@ export const QUESTION_BANK: Question[] = [
     text: "What is the correct signature of the standard main method?",
     options: [
       "public static void main(String[] args)",
-      "public void main(String[] args)",
+      "public static void main(String args)",
       "static public int main(String[] args)",
       "public static main(String[] args)",
     ],
     correctIndex: 0,
     explanation:
-      "The JVM looks for a public static void main(String[]) method. It must be static so no instance is needed, and it returns nothing.",
+      "The classic entry point is public static void main(String[] args). Newer Java versions also allow simplified instance main methods, but this form works everywhere.",
   },
   {
     id: "j9",
@@ -294,7 +290,6 @@ export const QUESTION_BANK: Question[] = [
       "break leaves the innermost loop (or switch). continue is the statement that skips to the next iteration.",
   },
 
-  // ---------- middle (more) ----------
   {
     id: "m6",
     level: "middle",
@@ -343,7 +338,7 @@ export const QUESTION_BANK: Question[] = [
     options: [
       "Types are checked only at runtime",
       "Primitive types are boxed automatically",
-      "Generic type information is removed after compilation",
+      "Generic types are erased at compile time",
       "Generics are replaced by Object fields",
     ],
     correctIndex: 2,
@@ -366,13 +361,12 @@ export const QUESTION_BANK: Question[] = [
       "Callable.call() returns a value and may throw checked exceptions. Runnable.run() returns nothing and cannot throw checked exceptions.",
   },
 
-  // ---------- senior (more) ----------
   {
     id: "s6",
     level: "senior",
     topic: "JVM",
     text: "Where does modern HotSpot keep class metadata?",
-    options: ["Metaspace", "Java heap", "Thread stack", "Code cache"],
+    options: ["Metaspace", "Young generation", "Thread stack", "Code cache"],
     correctIndex: 0,
     explanation:
       "Since Java 8, class metadata lives in Metaspace, which uses native memory. It replaced the old permanent generation.",

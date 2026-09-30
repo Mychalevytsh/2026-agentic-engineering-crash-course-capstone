@@ -30,7 +30,3 @@ export function nextQuestion(state: QuizState): QuizState {
   if (state.index === state.questions.length - 1) return { ...state, finished: true };
   return { ...state, index: state.index + 1, selected: null };
 }
-
-export function restartQuiz(state: QuizState): QuizState {
-  return initQuiz(state.questions);
-}
