@@ -5,10 +5,10 @@ browser through the Claude-in-Chrome extension. It may read only `docs/spec.md` 
 expected behaviour, never the source, and it edits nothing.
 
 ## How to run
-1. Build and start the app: `npm run build` then `npx next start -p 3461`.
-2. In Chrome, enable the Claude-in-Chrome extension and connect it to this Claude Code session.
-3. Ask Claude Code to start a general-purpose subagent with the brief below. The agent must
-   stop and report if `list_connected_browsers` is empty (no fallback to another browser).
+1. Build and start the app: `npm run build` then `npx next start -p <port>`.
+2. Browser: the built-in browser pane needs no setup. The Claude-in-Chrome extension also works
+   but must be installed and connected first (an agent that finds no connected Chrome stops).
+3. Ask Claude Code to start a general-purpose subagent with the brief below.
 4. Fix what it finds with a red test first, then record the outcome in the run log below.
 
 ## Brief given to the agent (summary)
@@ -33,8 +33,20 @@ Report: PASS / FAIL / NOT TESTED per item with evidence, then real bugs with rep
 ## Run log
 | Date | Result |
 |---|---|
-| 2026-09-30 | **Blocked, nothing tested.** The agent (about 61k tokens) found no connected Chrome (`list_connected_browsers` returned `[]`), stopped as instructed and ran none of the 10 checks. Next step: connect the extension and re-run. |
+| 2026-09-30 | Run 1 in Chrome extension: **blocked, nothing tested** (about 61k tokens). No Chrome was connected (`list_connected_browsers` returned `[]`), so the agent stopped as instructed. |
+| 2026-09-30 | Run 2 in the built-in browser pane, commit `06509f2`, separate sonnet agent, about 84k tokens, 46 tool calls, 1 screenshot. **10/10 checks PASS**: home, quiz flow at all 3 levels, mistakes review (including the 100% case), shuffle, best score (33% -> 100% -> 25% kept 100; invalid stored JSON did not break the page), code questions (2 per level), 404, keyboard (Tab/Enter/Space), mobile 375x812 (no page overflow, code block scrolls inside itself). Java facts in explanations checked out. |
 
-Until a run produces results, this practice is **planned, not proven**: do not cite it as
-evidence in the PR. The in-app browser checks recorded in the commit messages
-(`a612d48`, `790e9d3`) were done by the author agent, not an independent checker.
+### Findings from run 2 and what was done
+| Finding | Severity | Decision |
+|---|---|---|
+| Mistakes review omits the code snippet, so two code questions look identical | low | Fixed (spec R6 updated first) |
+| Keyboard focus is lost after answering, after Next and after Start | low (accessibility) | Fixed (spec R5 updated first) |
+| The 404 page is the stock Next page without a link home | info | Not changed (KISS) |
+| Decorative background text overlaps the heading on mobile, still readable | info | Not changed |
+| Try again goes straight to a reshuffled question 1 | info | Consistent with R7, not changed |
+
+Not tested by the agent: a contrast audit, screen-reader behaviour, a browser refresh in the
+middle of a quiz, and blocked-storage mode.
+
+The in-app browser checks recorded in the commit messages (`a612d48`, `790e9d3`) were done by
+the author agent, not an independent checker. Run 2 is the independent one.
