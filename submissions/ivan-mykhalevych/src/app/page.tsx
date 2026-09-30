@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BestScore from "@/components/BestScore";
 import { getQuestions } from "@/lib/questions";
 import { LEVELS } from "@/lib/types";
 import type { Level } from "@/lib/types";
@@ -31,6 +32,7 @@ export default function Home() {
               <span className="font-mono text-3xl text-accent">{LEVEL_INFO[level].glyph}</span>
               <span className="mt-4 font-mono text-xl font-semibold capitalize">{level}</span>
               <span className="mt-1 flex-1 text-sm text-muted">{LEVEL_INFO[level].blurb}</span>
+              <BestScore level={level} />
               <span className="mt-4 text-sm text-muted">
                 {getQuestions(level).length} questions ·{" "}
                 <span className="text-accent group-hover:underline">Start →</span>

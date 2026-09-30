@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
+import { saveBestScore } from "@/lib/bestScores";
 import { getMistakes } from "@/lib/mistakes";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
 import { shuffleQuestions } from "@/lib/shuffle";
-import type { Question } from "@/lib/types";
+import type { Level, Question } from "@/lib/types";
 
 type QuizOrStartScreen = QuizState | null;
 type Action =
@@ -27,8 +28,13 @@ const primaryBtn =
 const ghostBtn =
   "rounded-xl border border-line px-5 py-2.5 transition-colors hover:border-accent hover:text-accent";
 
-export default function QuizRunner({ questions }: { questions: Question[] }) {
+export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
+
+  useEffect(() => {
+    if (state?.finished) saveBestScore(level, scoreQuiz(state.questions, state.answers).percent);
+  }, [state, level]);
+
   const start = () => dispatch({ type: "start", questions: shuffleQuestions(questions, Math.random) });
 
   if (state === null) {

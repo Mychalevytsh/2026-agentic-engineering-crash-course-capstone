@@ -21,7 +21,7 @@ export default async function QuizPage({ params }: { params: Promise<{ level: st
       <h1 className="mt-3 mb-6 text-3xl font-bold capitalize">
         <span className="text-accent">{level}</span> quiz
       </h1>
-      <QuizRunner questions={getQuestions(level as Level)} />
+      <QuizRunner level={level as Level} questions={getQuestions(level as Level)} />
     </main>
   );
 }
