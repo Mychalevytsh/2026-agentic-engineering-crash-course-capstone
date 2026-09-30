@@ -1,25 +1,39 @@
 import Link from "next/link";
 import { getQuestions } from "@/lib/questions";
 import { LEVELS } from "@/lib/types";
+import type { Level } from "@/lib/types";
+
+const LEVEL_INFO: Record<Level, { glyph: string; blurb: string }> = {
+  junior: { glyph: "{ }", blurb: "Language basics, strings, collections, OOP" },
+  middle: { glyph: "</>", blurb: "Concurrency, streams, exceptions, the JDK" },
+  senior: { glyph: "λ", blurb: "JVM internals, memory model, Spring, Java 21" },
+};
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold">Java Interview Prep</h1>
-      <p className="text-zinc-600 dark:text-zinc-300">
-        Pick a level and answer multiple-choice questions. You see the explanation after each
-        answer and a score at the end.
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-14 sm:py-20">
+      <p className="font-mono text-sm tracking-widest text-accent uppercase">Java trainer</p>
+      <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
+        Train the Java questions <span className="text-accent">everyone asks</span>
+      </h1>
+      <p className="mt-4 max-w-xl text-lg text-muted">
+        Pick a level, answer short multiple-choice questions, and read the explanation after
+        each one. No timers, no sign-up.
       </p>
-      <ul className="space-y-3">
+
+      <ul className="mt-10 grid gap-4 sm:grid-cols-3">
         {LEVELS.map((level) => (
           <li key={level}>
             <Link
               href={`/quiz/${level}`}
-              className="block rounded border p-4 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-5 backdrop-blur transition-colors hover:border-accent"
             >
-              <span className="text-lg font-semibold capitalize">{level}</span>
-              <span className="ml-2 text-sm text-zinc-500">
-                {getQuestions(level).length} questions
+              <span className="font-mono text-3xl text-accent">{LEVEL_INFO[level].glyph}</span>
+              <span className="mt-4 font-mono text-xl font-semibold capitalize">{level}</span>
+              <span className="mt-1 flex-1 text-sm text-muted">{LEVEL_INFO[level].blurb}</span>
+              <span className="mt-4 text-sm text-muted">
+                {getQuestions(level).length} questions ·{" "}
+                <span className="text-accent group-hover:underline">Start →</span>
               </span>
             </Link>
           </li>

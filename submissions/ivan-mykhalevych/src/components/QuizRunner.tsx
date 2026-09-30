@@ -20,25 +20,29 @@ function reducer(state: QuizState, action: Action): QuizState {
   }
 }
 
+const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
+const primaryBtn =
+  "rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-[#1a1206] transition-opacity hover:opacity-90";
+const ghostBtn =
+  "rounded-xl border border-line px-5 py-2.5 transition-colors hover:border-accent hover:text-accent";
+
 export default function QuizRunner({ questions }: { questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, questions, initQuiz);
 
   if (state.finished) {
     const score = scoreQuiz(state.questions, state.answers);
     return (
-      <section className="space-y-4" aria-live="polite">
+      <section className={`${card} space-y-5`} aria-live="polite">
         <h2 className="text-2xl font-semibold">Your score</h2>
-        <p className="text-lg">
-          {score.correct} / {score.total} correct ({score.percent}%)
+        <p className="font-mono text-5xl font-bold text-accent">{score.percent}%</p>
+        <p className="text-muted">
+          {score.correct} of {score.total} correct
         </p>
-        <div className="flex gap-3">
-          <button
-            onClick={() => dispatch({ type: "restart" })}
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
+        <div className="flex flex-wrap gap-3">
+          <button onClick={() => dispatch({ type: "restart" })} className={primaryBtn}>
             Try again
           </button>
-          <Link href="/" className="rounded border px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+          <Link href="/" className={ghostBtn}>
             Choose another level
           </Link>
         </div>
@@ -49,44 +53,64 @@ export default function QuizRunner({ questions }: { questions: Question[] }) {
   const question = state.questions[state.index];
   const answered = state.selected !== null;
   const isLast = state.index === state.questions.length - 1;
+  const progress = ((state.index + (answered ? 1 : 0)) / state.questions.length) * 100;
 
   return (
-    <section className="space-y-4">
-      <p className="text-sm text-zinc-500">
-        Question {state.index + 1} of {state.questions.length} · {question.topic}
-      </p>
-      <h2 className="text-xl font-semibold">{question.text}</h2>
-      <ul className="space-y-2">
+    <section className={`${card} space-y-5`}>
+      <div>
+        <div className="flex justify-between text-sm text-muted">
+          <span>
+            Question {state.index + 1} of {state.questions.length}
+          </span>
+          <span className="font-mono">{question.topic}</span>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2 transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      <h2 className="text-xl leading-snug font-semibold">{question.text}</h2>
+
+      <ul className="space-y-2.5">
         {question.options.map((option, i) => {
           const isCorrect = i === question.correctIndex;
           const isChosen = i === state.selected;
-          let style = "border hover:bg-zinc-100 dark:hover:bg-zinc-800";
-          if (answered && isCorrect) style = "border-green-600 bg-green-100 dark:bg-green-900";
-          else if (answered && isChosen) style = "border-red-600 bg-red-100 dark:bg-red-900";
+          let style = "border-line hover:border-accent";
+          if (answered && isCorrect) style = "border-good bg-good/15";
+          else if (answered && isChosen) style = "border-bad bg-bad/15";
+          else if (answered) style = "border-line opacity-60";
           return (
             <li key={option}>
               <button
                 disabled={answered}
                 onClick={() => dispatch({ type: "select", option: i })}
-                className={`w-full rounded px-4 py-2 text-left ${style}`}
+                className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${style}`}
               >
-                {option}
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-line font-mono text-sm text-muted">
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span>{option}</span>
               </button>
             </li>
           );
         })}
       </ul>
+
       {answered && (
-        <div aria-live="polite" className="space-y-3">
-          <p className="font-medium">
+        <div aria-live="polite" className="space-y-3 border-t border-line pt-5">
+          <p
+            className={`font-mono font-semibold ${
+              state.selected === question.correctIndex ? "text-good" : "text-bad"
+            }`}
+          >
             {state.selected === question.correctIndex ? "Correct!" : "Not quite."}
           </p>
-          <p className="text-zinc-600 dark:text-zinc-300">{question.explanation}</p>
-          <button
-            onClick={() => dispatch({ type: "next" })}
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            {isLast ? "See score" : "Next"}
+          <p className="text-muted">{question.explanation}</p>
+          <button onClick={() => dispatch({ type: "next" })} className={primaryBtn}>
+            {isLast ? "See score" : "Next →"}
           </button>
         </div>
       )}
