@@ -36,6 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/dashboard" className="text-muted hover:text-accent">
               Dashboard
             </Link>
+            <Link href="/logs" className="text-muted hover:text-accent">
+              Logs
+            </Link>
           </nav>
           <ProfileSwitcher />
         </header>

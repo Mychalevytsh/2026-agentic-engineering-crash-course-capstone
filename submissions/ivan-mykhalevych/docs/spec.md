@@ -158,8 +158,8 @@ All functions are pure and work on the attempt log of one profile (R12).
   `profile`. The date is the UTC date of `exportedAt`.
 - The page `/logs` lists the active profile's attempts newest first, each as local date and
   time, level and "N of M correct (P%)". With no attempts it shows "No attempts yet". An
-  "Export JSON" button downloads the file named by `exportFileName`; it is disabled when there
-  is nothing to export.
+  "Export JSON" button downloads the file named by `exportFileName`; with no attempts the button is
+  not shown at all.
 - The header has a "Logs" link next to "Dashboard".
 
 ## Acceptance scenarios
@@ -200,7 +200,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
 
 ## Spec changes
-- v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name.
+- v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name. Corrected after browser verification: the Export button is absent, not disabled, when there are no attempts.
 - v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.
 - v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).
 - v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
