@@ -55,3 +55,52 @@ middle of a quiz, and blocked-storage mode.
 
 The in-app browser checks recorded in the commit messages (`a612d48`, `790e9d3`) were done by
 the author agent, not an independent checker. Run 2 is the independent one.
+
+## Run 3 and review 2 (branch `feature/profiles-dashboard`, requirements R10-R16)
+
+The brief was extended with profile, attempt-log, dashboard, logs/export, migration,
+robustness and mobile-header checks (13 items in total).
+
+**Reviewer run 2** (read-only, about 92k tokens, focused on R10-R16): no high findings and no
+code comments. Medium: the storage layer had no tests, and unreadable profile text was
+overwritten without a backup. Low-medium: profile data was deleted before the removal was
+saved. Low: weak assertions in a summary test, no month or year streak boundary tests, stale
+profile id in the remove handler, download link handling, key collisions in the logs list.
+Fixed in red `3b59998` and green `e37da59`, with 9 new storage-layer tests (6 cover existing
+behaviour and passed at once). Not fixed, on purpose: a near-trivial key test, a silent failed
+write in the add form, a rare two-tab race on the first Default profile, and a dashboard `now`
+that stays frozen when a tab is left open past midnight.
+
+**QA run 3** (separate sonnet agent, built-in browser pane, commit `e37da59`, about 101k
+tokens, 78 tool calls, about 5.5 minutes): **12 of 13 checks PASS, 1 conditional FAIL.**
+Passed: home and header, quiz flow and mistakes review, shuffle, profiles (validation, limit
+of 10, remove with confirmation), best score per profile, migration (both scenarios), attempt
+log (one per quiz, cap 200), dashboard, logs and export, robustness with corrupt stored data,
+keyboard focus and 404.
+
+| Finding | Severity | Decision |
+|---|---|---|
+| Header overflows horizontally at 375 px when a profile has a 24-character name | medium | Fixed (spec v0.12) in `abc7fc3`; verified at 375x812, the dashboard and logs pages do not scroll sideways (`scrollX` stays 0) |
+| Best labels appear about a second after the page loads | info | Not changed |
+| Old profile's score stays on screen after switching profile on the score screen | info | Intended by R12, not changed |
+| Background code snippets appear in extracted page text | info | The container is `aria-hidden`; not changed |
+
+Not tested by the agent: a contrast audit, screen readers, refresh in the middle of a quiz,
+blocked storage, focus after "See score", and a profile literally named "Ann Lee" (the file
+name rule was tested with other names). A second QA run after the header fix was not repeated
+(KISS); the fix was verified by the author agent.
+
+## Test-and-fix pass (2026-10-01, author agent, built-in browser)
+
+Covered the gaps the independent runs had listed as "not tested":
+
+| Area | Result | Action |
+|---|---|---|
+| Contrast audit, dark theme (computed WCAG ratios) | PASS, lowest 5.2:1 | none |
+| Contrast audit, light theme | FAIL: button label 3.58:1 (needs 4.5:1) | Fixed: `on-accent` token and darker light `accent-2`, now 5.18:1 and 5.02:1 (`3e45cfe`, design.md first) |
+| Light theme, visual check of home and an answered code question | PASS | none |
+| Blocked `localStorage` (getter that throws) | Quiz and navigation worked with no errors; dashboard and logs showed "Loading your profile..." forever | Fixed: `storageAvailable()` and a clear message (spec R11 v0.13; red `89a0199`, green in the next commit) |
+| Refresh in the middle of a quiz | PASS: back to the start screen, no partial attempt logged | none (by design) |
+
+Still not tested: screen readers, other browsers (only the built-in Chromium pane), and multiple
+tabs open at once. These checks were done by the author agent, not by an independent checker.

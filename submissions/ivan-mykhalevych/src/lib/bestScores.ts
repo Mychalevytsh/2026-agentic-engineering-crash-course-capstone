@@ -3,7 +3,7 @@ import type { Level } from "./types";
 
 export type BestScores = Partial<Record<Level, number>>;
 
-export const BEST_SCORES_KEY = "java-trainer-best-scores";
+export const LEGACY_BEST_SCORES_KEY = "java-trainer-best-scores";
 
 function isPercent(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100;
@@ -31,19 +31,17 @@ export function withBestScore(scores: BestScores, level: Level, percent: number)
   return { ...scores, [level]: Math.max(scores[level] ?? 0, percent) };
 }
 
-export function readBestScoresText(): string | null {
-  try {
-    return localStorage.getItem(BEST_SCORES_KEY);
-  } catch {
-    return null;
+export const BEST_KEY_BASE = "java-trainer-best";
+
+export function mergeBestScores(a: BestScores, b: BestScores): BestScores {
+  const merged: BestScores = {};
+  for (const level of LEVELS) {
+    const scores = [a[level], b[level]].filter((score): score is number => score !== undefined);
+    if (scores.length > 0) merged[level] = Math.max(...scores);
   }
+  return merged;
 }
 
-export function saveBestScore(level: Level, percent: number): void {
-  try {
-    const updated = withBestScore(parseBestScores(readBestScoresText()), level, percent);
-    localStorage.setItem(BEST_SCORES_KEY, JSON.stringify(updated));
-  } catch {
-    return;
-  }
+export function mergeStoredBestScores(profileText: string | null, legacyText: string | null): string {
+  return JSON.stringify(mergeBestScores(parseBestScores(profileText), parseBestScores(legacyText)));
 }

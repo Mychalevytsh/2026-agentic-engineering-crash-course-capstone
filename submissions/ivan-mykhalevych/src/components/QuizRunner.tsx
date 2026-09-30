@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
-import { saveBestScore } from "@/lib/bestScores";
+import { buildAttempt } from "@/lib/attempts";
 import { getMistakes } from "@/lib/mistakes";
+import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
@@ -24,7 +25,7 @@ function reducer(state: QuizOrStartScreen, action: Action): QuizOrStartScreen {
 
 const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
 const primaryBtn =
-  "rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-[#1a1206] transition-opacity hover:opacity-90";
+  "rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent transition-opacity hover:opacity-90";
 const ghostBtn =
   "rounded-xl border border-line px-5 py-2.5 transition-colors hover:border-accent hover:text-accent";
 
@@ -37,8 +38,14 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     if (screen !== "start") headingRef.current?.focus();
   }, [screen]);
 
+  const loggedQuiz = useRef<QuizState | null>(null);
+
   useEffect(() => {
-    if (state?.finished) saveBestScore(level, scoreQuiz(state.questions, state.answers).percent);
+    if (!state?.finished || loggedQuiz.current === state) return;
+    loggedQuiz.current = state;
+    const attempt = buildAttempt(level, state.questions, state.answers, Date.now());
+    saveBestScore(level, attempt.percent);
+    logAttempt(attempt);
   }, [state, level]);
 
   const start = () => dispatch({ type: "start", questions: shuffleQuestions(questions, Math.random) });
