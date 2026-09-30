@@ -100,6 +100,9 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       technical", low) and m3's "never cached at all" wording (low; option is wrong either
       way). I did not independently verify the reviewer's JEP 445 timeline claim, only
       softened the wording so it holds either way.
+- [ ] **Independent QA in real Chrome (second checker).** Plan and run log:
+      `docs/qa-plan.md`. Status: **attempted 2026-09-30, blocked** because the Chrome
+      extension was not connected; no checks ran. Tick only after a run returns results.
 - [ ] Optional: autonomy log (`templates/autonomy-log.md`), Project Factory. Skipped unless
       time allows.
 
