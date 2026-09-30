@@ -36,8 +36,10 @@ export default function LogsView() {
     const link = document.createElement("a");
     link.href = url;
     link.download = exportFileName(profile.name, exportedAt);
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   return (
@@ -54,8 +56,8 @@ export default function LogsView() {
         </button>
       </div>
       <ul className="divide-y divide-line">
-        {newestFirst(attempts).map((attempt) => (
-          <li key={attempt.at} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+        {newestFirst(attempts).map((attempt, index) => (
+          <li key={`${attempt.at}-${index}`} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
             <span className="text-muted">{new Date(attempt.at).toLocaleString()}</span>
             <span className="font-mono capitalize">{attempt.level}</span>
             <span>

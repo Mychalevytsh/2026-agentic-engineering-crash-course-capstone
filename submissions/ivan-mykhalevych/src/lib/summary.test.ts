@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Attempt } from "./attempts";
-import { currentStreak, masteryByTopic, summarizeProgress, weakestTopics } from "./progress";
+import { summarizeProgress } from "./progress";
 
 const now = new Date(2026, 8, 30, 10, 0).getTime();
 
@@ -23,14 +23,14 @@ describe("summarizeProgress (spec R14)", () => {
       attempt(now, [["Strings", false], ["OOP", true], ["Strings", false]]),
       attempt(now - 1000, [["Strings", true], ["OOP", true]]),
     ];
-    const mastery = masteryByTopic(attempts);
     expect(summarizeProgress(attempts, now)).toEqual({
       attemptCount: 2,
-      streak: currentStreak(attempts, now),
-      mastery,
-      weakest: weakestTopics(mastery),
+      streak: 1,
+      mastery: [
+        { topic: "OOP", correct: 2, total: 2, percent: 100 },
+        { topic: "Strings", correct: 1, total: 3, percent: 33 },
+      ],
+      weakest: [{ topic: "Strings", correct: 1, total: 3, percent: 33 }],
     });
-    expect(summarizeProgress(attempts, now).attemptCount).toBe(2);
-    expect(summarizeProgress(attempts, now).weakest.map((m) => m.topic)).toEqual(["Strings"]);
   });
 });

@@ -2,11 +2,13 @@ import { ATTEMPTS_KEY_BASE, appendAttempt, parseAttempts } from "./attempts";
 import { BEST_KEY_BASE, LEGACY_BEST_SCORES_KEY, mergeStoredBestScores, parseBestScores, withBestScore } from "./bestScores";
 import type { Attempt } from "./attempts";
 import {
+  PROFILES_BACKUP_KEY,
   PROFILES_KEY,
   PROFILE_DATA_KEY_BASES,
   ensureProfile,
   parseProfiles,
   profileKey,
+  removeProfile,
   serializeProfiles,
 } from "./profiles";
 import type { ProfilesState } from "./profiles";
@@ -76,8 +78,14 @@ function migrateLegacyBestScores(): void {
 }
 
 export function ensureStoredProfile(): void {
-  const state = readProfiles();
-  if (state.profiles.length === 0) saveProfiles(ensureProfile(state, newId));
+  const storedText = readStored(PROFILES_KEY);
+  const state = parseProfiles(storedText);
+  if (state.profiles.length === 0) {
+    if (storedText !== null && storedText !== serializeProfiles(state)) {
+      writeStored(PROFILES_BACKUP_KEY, storedText);
+    }
+    saveProfiles(ensureProfile(state, newId));
+  }
   migrateLegacyBestScores();
 }
 
@@ -99,6 +107,7 @@ export function saveBestScore(level: Level, percent: number): void {
   writeStored(key, JSON.stringify(withBestScore(parseBestScores(readStored(key)), level, percent)));
 }
 
-export function removeStoredProfile(_id: string): void {
-  throw new Error("not implemented");
+export function removeStoredProfile(id: string): void {
+  saveProfiles(removeProfile(readProfiles(), id));
+  if (!readProfiles().profiles.some((profile) => profile.id === id)) deleteProfileData(id);
 }

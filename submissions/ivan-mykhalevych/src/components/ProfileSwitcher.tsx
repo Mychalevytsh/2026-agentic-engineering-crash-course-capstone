@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { addProfile, removeProfile, switchProfile } from "@/lib/profiles";
-import { deleteProfileData, ensureStoredProfile, newId, readProfiles, saveProfiles } from "@/lib/profileStore";
+import { addProfile, switchProfile } from "@/lib/profiles";
+import { ensureStoredProfile, newId, readProfiles, removeStoredProfile, saveProfiles } from "@/lib/profileStore";
 import { useProfiles } from "@/lib/useProfiles";
 
 const control = "rounded-xl border border-line bg-surface px-3 py-1.5 text-sm backdrop-blur";
@@ -36,9 +36,10 @@ export default function ProfileSwitcher() {
   };
 
   const remove = () => {
-    if (!window.confirm(`Remove "${active.name}" and all its data?`)) return;
-    deleteProfileData(active.id);
-    saveProfiles(removeProfile(readProfiles(), active.id));
+    const current = readProfiles();
+    const target = current.profiles.find((profile) => profile.id === current.activeId);
+    if (!target || !window.confirm(`Remove "${target.name}" and all its data?`)) return;
+    removeStoredProfile(target.id);
   };
 
   return (

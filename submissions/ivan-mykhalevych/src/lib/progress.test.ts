@@ -85,4 +85,18 @@ describe("currentStreak (spec R13)", () => {
   it("does not depend on the order of the input", () => {
     expect(currentStreak(on(2, 0, 1), today)).toBe(3);
   });
+
+  it("crosses a month boundary", () => {
+    const firstOfOctober = new Date(2026, 9, 1, 9, 0).getTime();
+    const attempts = [new Date(2026, 8, 30, 20, 0), new Date(2026, 8, 29, 8, 0)].map((day) =>
+      attemptWith([["T", true]], day.getTime()),
+    );
+    expect(currentStreak(attempts, firstOfOctober)).toBe(2);
+  });
+
+  it("crosses a year boundary", () => {
+    const newYear = new Date(2027, 0, 1, 9, 0).getTime();
+    const lastDayOfYear = attemptWith([["T", true]], new Date(2026, 11, 31, 23, 0).getTime());
+    expect(currentStreak([lastDayOfYear], newYear)).toBe(1);
+  });
 });
