@@ -1,17 +1,18 @@
 # Java Interview Prep — agent rules
 
-Read `docs/spec.md` before writing code. The spec is the source of truth.
+The code is the single source of truth. `docs/reference.md` describes it (derived from the code);
+read it before changing behaviour. `docs/spec.md` is the history of the requirements, not the authority.
 `docs/capstone-dod.md` is the main instruction and Definition of Done (deadline 4 Oct);
 `docs/design.md` holds the design tokens.
 
 ## Main rule: KISS (keep it simple)
-Do the simplest thing that satisfies the spec. No extra features, abstractions,
+Do the simplest thing that satisfies the task. No extra features, abstractions,
 dependencies, config or files beyond what a requirement asks for. When two solutions work,
 pick the plainer one. If something can be deleted instead of added, delete it. Use
 subagents and heavy process only when they clearly earn their cost.
 
 ## Workflow
-1. Spec first. Code only what a requirement (R1..) asks for.
+1. Do only what the task asks. Check `docs/reference.md` first; when behaviour changes, update it in the same commit.
 2. Test first. Write the failing test, run it red, commit it with `RED_COMMIT=1` (the only
    allowed hook bypass; never use `--no-verify`); then implement, run green, commit normally.
 3. Never claim something works without pasting the real command output.

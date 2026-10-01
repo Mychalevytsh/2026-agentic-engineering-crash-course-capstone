@@ -9,7 +9,7 @@ and pastes the link on the course platform; the course deadline in the author's 
 - `npm run check` passes: **243/243 tests**, `next build` OK. Guest mode (local profiles) is unchanged
   and works. Accounts exist only as tested server-side services; **no API routes and no UI yet**.
 - The main spec is `docs/spec.md` (R1-R28, change log at the bottom, latest entry v0.18).
-  `docs/user-management.md` is the readable UM1-UM9 copy of R20-R28 (spec.md wins on conflict).
+  The code is the source of truth; `docs/reference.md` describes it (`user-management.md` was removed as a duplicate).
   Other docs: `docs/capstone-dod.md` (assignment + DoD, needs a final refresh), `docs/qa-plan.md`,
   `docs/pr-description.md`, `docs/design.md`, `README.md`.
 

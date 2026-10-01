@@ -105,9 +105,8 @@ git-ignored. To start with an empty database, stop the server and delete the fil
 
 The project is a capstone of the Agentic Engineering course and was built with Claude Code:
 
-- **Spec first:** `docs/spec.md` describes every requirement (R1 to R28) before the code.
-  `docs/spec-as-built.md` is a description reverse-engineered from the finished code, with a table
-  of differences from the written spec.
+- **One source of truth:** the code. `docs/reference.md` describes it, derived from the code.
+  `docs/spec.md` is the history of the requirements (R1 to R28) that were written before the code.
 - **Tests first:** each slice has a failing-test commit followed by a passing one. A pre-commit hook
   runs `npm run check`. Enable it once per clone:
   `git config core.hooksPath submissions/ivan-mykhalevych/.githooks`
@@ -120,9 +119,8 @@ The project is a capstone of the Agentic Engineering course and was built with C
 
 | File | What is in it |
 |---|---|
-| `docs/spec.md` | The requirements and the change log (source of truth) |
-| `docs/spec-as-built.md` | The code described as built, with a drift table |
-| `docs/user-management.md` | The account requirements in a standalone form |
+| `docs/reference.md` | What the code does, section by section (the documentation to read) |
+| `docs/spec.md` | The original requirements and their change log (history, not authority) |
 | `docs/design.md` | Colours, typography and layout rules |
 | `docs/qa-plan.md` | Reviews, QA runs, findings and decisions |
 | `docs/capstone-dod.md` | The course assignment and the Definition of Done with proof |
@@ -137,5 +135,5 @@ src/app          pages (home, quiz, dashboard, logs, login, register, account) a
 src/components   interface components
 src/lib          quiz logic, question bank, translations, local storage, client code for accounts
 src/server       accounts: passwords, sessions, database, data and the HTTP handler
-docs             specifications, plans and reports
+docs             reference (derived from the code), history, plans and reports
 ```
