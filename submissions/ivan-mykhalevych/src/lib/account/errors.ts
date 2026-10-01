@@ -9,6 +9,7 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "name-too-long": "error.name-too-long",
   "email-taken": "error.email-taken",
   "invalid-credentials": "error.invalid-credentials",
+  "wrong-password": "error.wrong-password",
   "too-many-attempts": "error.too-many-attempts",
   "forbidden-origin": "error.forbidden-origin",
   "network-error": "error.network-error",

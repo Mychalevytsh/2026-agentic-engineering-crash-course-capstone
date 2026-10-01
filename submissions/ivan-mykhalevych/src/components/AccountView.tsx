@@ -17,7 +17,7 @@ function Feedback({ error, success }: { error: string | null; success: MessageKe
   if (error !== null) {
     return (
       <p role="alert" className="text-sm text-bad">
-        {t(errorMessageKey(error))}
+        {t(errorMessageKey(error === "invalid-credentials" ? "wrong-password" : error))}
       </p>
     );
   }
@@ -142,13 +142,16 @@ function DeleteSection() {
   const { t } = useT();
   const [password, setPassword] = useState("");
   const { busy, submit, feedback } = useAction(async () => {
-    if (!window.confirm(t("account.confirmDelete"))) return null;
     const failure = await deleteAccount(password);
     setPassword("");
     return failure;
   }, "account.saved");
+  const confirmAndSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (window.confirm(t("account.confirmDelete"))) void submit();
+  };
   return (
-    <form onSubmit={submit} className={card}>
+    <form onSubmit={confirmAndSubmit} className={card}>
       <h2 className="text-xl font-semibold">{t("account.deleteHeading")}</h2>
       <p className="text-muted">{t("account.deleteText")}</p>
       <input
