@@ -7,7 +7,7 @@ import { topicLabel } from "@/lib/localize";
 import { summarizeProgress } from "@/lib/progress";
 import { LEVELS } from "@/lib/types";
 import { useT } from "@/lib/useLanguage";
-import { useActiveProfile, useAttempts, useBestScores } from "@/lib/useProfiles";
+import { useProgress } from "@/lib/useProgress";
 
 const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
 
@@ -21,13 +21,12 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export default function DashboardView() {
-  const profile = useActiveProfile();
-  const attempts = useAttempts(profile?.id ?? null);
-  const bestScores = useBestScores();
+  const progress = useProgress();
   const { language, t, tn } = useT();
   const [now] = useState(() => Date.now());
 
-  if (!profile) return <NoProfileNotice />;
+  if (progress === null) return <NoProfileNotice />;
+  const { name, attempts, best: bestScores } = progress;
 
   const summary = summarizeProgress(attempts, now);
 
@@ -35,7 +34,7 @@ export default function DashboardView() {
     return (
       <section className={`${card} space-y-4`}>
         <h2 className="text-xl font-semibold">{t("empty.title")}</h2>
-        <p className="text-muted break-words">{t("dashboard.emptyText", { name: profile.name })}</p>
+        <p className="text-muted break-words">{t("dashboard.emptyText", { name })}</p>
         <Link
           href="/"
           className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent"
@@ -49,7 +48,7 @@ export default function DashboardView() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label={t("dashboard.profile")} value={profile.name} />
+        <Stat label={t("dashboard.profile")} value={name} />
         <Stat label={t("dashboard.attempts")} value={String(summary.attemptCount)} />
         <Stat label={t("dashboard.streak")} value={tn("dashboard.days", summary.streak)} />
       </div>

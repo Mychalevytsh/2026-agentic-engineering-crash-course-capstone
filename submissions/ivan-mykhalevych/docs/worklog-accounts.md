@@ -21,13 +21,14 @@ and pastes the link on the course platform; the course deadline in the author's 
 | R20 SQLite schema, users; R23 sessions | `c86ab08` | `f85697a` | `src/server/db.ts`, `users.ts`, `sessions.ts` |
 | R24 auth service (throttling) | `26c3d4c` | `16389d6` | `src/server/auth.ts` |
 | R25 account data (record, import, isolation) | `ba1ef04` | `65d80f8` | `src/server/data.ts` |
+| R26 HTTP API (single handler + catch-all route) | `623e1be` | next commit | `src/server/api.ts`, `src/app/api/[...path]/route.ts` |
 
 Before accounts (already on `ivan-mykhalevych`): 120-question bank (40 per level) with statistical
 no-tell tests, 12-question random quizzes, English/Ukrainian interface and questions, profiles,
 dashboard, logs and JSON export, best scores, hook, reviewer and QA runs, docs.
 
 ## Still to do, in this order
-1. **R26 HTTP API** (thin routes). Put logic in framework-free functions that take
+1. ~~R26 HTTP API~~ DONE (smoke-tested with curl; in production the cookie is Secure, so test in a browser with `next dev`). Original notes: Put logic in framework-free functions that take
    `(db, request-like input, now)` and return `{ status, body, setCookie? }`, test them, then add
    `src/app/api/**/route.ts` that only parse the `Request`, call them and build the `Response`.
    Endpoints: `POST /api/auth/register|login|logout|password`, `GET|PATCH|DELETE /api/auth/me`,

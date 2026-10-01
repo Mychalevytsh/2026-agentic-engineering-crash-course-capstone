@@ -326,7 +326,13 @@ JSON under `/api`, all dynamic:
   403 `forbidden-origin`, 413 `body-too-large`, 415 `json-required`.
 - A request that changes state (anything but GET) must have an `Origin` header whose host
   equals the request's `Host`, otherwise 403 `forbidden-origin`. Bodies must be JSON of at most
-  100 kB.
+  100 kB. A non-empty body that is not a JSON object answers 400 `body-invalid`; an empty body
+  counts as `{}` and needs no content type. Unknown paths answer 404 `not-found`, known paths
+  with another method 405 `method-not-allowed`. Request bodies use `{ email, password,
+  displayName }` (register), `{ email, password }` (login), `{ displayName }` (PATCH me),
+  `{ current, next }` (password), `{ password }` (DELETE me), an attempt object (attempts) and
+  `{ best, attempts }` (import). Success bodies: `{ user }` for register, login and me, `{ ok:
+  true }` for logout, password change and delete, `{ best, attempts }` for data and import.
 - Responses never contain a password hash or a session token (the token only travels in the
   `Set-Cookie` header). Error bodies contain codes only, never stack traces. Passwords and tokens
   are never written to logs.
@@ -427,6 +433,7 @@ and multi-server deployment (SQLite is a single-node database).
 
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
+- v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
 - v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.
 - v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).
 - v0.16 (Ukrainian questions): R19 also applies the length no-tell bounds of R2 to the Ukrainian options.

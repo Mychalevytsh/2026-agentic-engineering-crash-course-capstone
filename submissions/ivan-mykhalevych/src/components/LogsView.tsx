@@ -5,22 +5,22 @@ import NoProfileNotice from "./NoProfileNotice";
 import { LANGUAGE_LOCALES } from "@/lib/language";
 import { exportAttemptsJson, exportFileName, newestFirst } from "@/lib/logExport";
 import { useT } from "@/lib/useLanguage";
-import { useActiveProfile, useAttempts } from "@/lib/useProfiles";
+import { useProgress } from "@/lib/useProgress";
 
 const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
 
 export default function LogsView() {
-  const profile = useActiveProfile();
-  const attempts = useAttempts(profile?.id ?? null);
+  const progress = useProgress();
   const { language, t, tn } = useT();
 
-  if (!profile) return <NoProfileNotice />;
+  if (progress === null) return <NoProfileNotice />;
+  const { name, attempts } = progress;
 
   if (attempts.length === 0) {
     return (
       <section className={`${card} space-y-4`}>
         <h2 className="text-xl font-semibold">{t("empty.title")}</h2>
-        <p className="text-muted break-words">{t("logs.emptyText", { name: profile.name })}</p>
+        <p className="text-muted break-words">{t("logs.emptyText", { name })}</p>
         <Link
           href="/"
           className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent"
@@ -33,13 +33,13 @@ export default function LogsView() {
 
   const exportJson = () => {
     const exportedAt = Date.now();
-    const file = new Blob([exportAttemptsJson(profile.name, attempts, exportedAt)], {
+    const file = new Blob([exportAttemptsJson(name, attempts, exportedAt)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
     link.href = url;
-    link.download = exportFileName(profile.name, exportedAt);
+    link.download = exportFileName(name, exportedAt);
     document.body.append(link);
     link.click();
     link.remove();
@@ -49,7 +49,7 @@ export default function LogsView() {
   return (
     <section className={`${card} space-y-4`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 text-xl font-semibold break-words">{tn("logs.attempts", attempts.length, { name: profile.name })}</h2>
+        <h2 className="min-w-0 text-xl font-semibold break-words">{tn("logs.attempts", attempts.length, { name })}</h2>
         <button
           onClick={exportJson}
           className="rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent transition-opacity hover:opacity-90"
