@@ -117,3 +117,17 @@ tabs open at once. These checks were done by the author agent, not by an indepen
 Not tested: screen readers, other browsers, "No mistakes" in Ukrainian (a perfect score is not
 reachable with shuffled options), the blocked-storage notice in Ukrainian. The author agent also
 verified 24 sampled Ukrainian questions by reading the marked correct answers.
+
+## Accounts (2026-10-01, branch `feature/accounts`, requirements R20-R28)
+
+| Check | Who | Result | Action |
+|---|---|---|---|
+| Security review, read-only, about 87k tokens | independent agent | no high findings; data isolation, token handling, scrypt, enumeration and CSRF came out clean; 3 medium (body read before the size check, blocking scrypt without a global limit, unbounded `login_failures` and `users`), 9 low | body now read with a byte limit, 500 JSON on database errors, own-property lookup, expired failures and sessions purged, `results` capped at 100, password change and registration in transactions (`fix(green)` commit after the red commit `test(red): security review fixes`) |
+| Black-box QA, built-in browser, about 120k tokens, 162 tool calls | independent agent | register, login, lockout, import, delete, mobile 375 px, keyboard, both languages all PASS; no high bugs | login wording on wrong current password, stale signed-in header after a session revoked in another tab, silent loss when saving to the server fails, "Saved." after cancelling the delete dialog, home copy "no registration": all fixed in `66b5bd2` |
+
+Left open on purpose, written down as known limits: the 5-failures lockout can be used to lock out
+a known email (it is what R24 specifies); no per-IP or global rate limit and synchronous scrypt
+(single-node course project); a client can forge its own scores; the Origin check compares hosts
+only; a 401 on `/api/auth/me` shows in the console for guests; a brief English flash before the
+Ukrainian text on a hard load; the cookie is `Secure` in production, so test with `npm run dev`.
+Not tested: clearing cookies mid-session, the dashboard on mobile while signed in.
