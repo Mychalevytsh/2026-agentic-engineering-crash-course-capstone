@@ -25,10 +25,11 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 - Answer options in one question are similar in length: longest <= 2x shortest,
   so the correct answer cannot be guessed by its length or specificity.
 - Within a level, `correctIndex` is not the same for every question.
-- No answer tell. Per level, the correct option is the strictly longest option in at most 30%
-  of the questions and the strictly shortest in at most 30%, and each answer position (0 to 3)
-  holds the correct answer in 15% to 35% of the questions. Chance level is 25%, so a candidate
-  cannot score well by always picking the longest option or a favourite position.
+- No answer tell. Per level, the correct option is the strictly longest option in 10% to 30%
+  of the questions and the strictly shortest in 10% to 30%, and each answer position (0 to 3)
+  holds the correct answer in 15% to 35% of the questions. Chance level is 25%. The upper
+  bounds stop "pick the longest" from working; the lower bounds stop "never pick the longest"
+  from working either, so neither habit beats guessing.
 
 ### R3 Selection
 `getQuestions(level)` returns only the questions of that level, in bank order (the pool).
@@ -260,7 +261,7 @@ All functions are pure and work on the attempt log of one profile (R12).
 - Given level `senior`, only senior questions are returned.
 - Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12
   for the same seed; given a pool of 5, it returns all 5.
-- Given any level, the correct option is the strictly longest option in at most 30% of its
+- Given any level, the correct option is the strictly longest option in 10% to 30% of its
   questions.
 - Given preferred languages `["ru", "uk-UA"]`, `detectLanguage` returns `uk`; given
   `["en-US", "uk"]` it returns `en`; given `[]` or `["fr"]` it returns `en`.
@@ -312,7 +313,7 @@ English and Ukrainian, a translated page title or 404 page, right-to-left layout
 
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
-- v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest, shortest, answer position) instead of relying on authors' discipline. Applies before the Ukrainian translation (R19) so it is translated once.
+- v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest and shortest within 10%-30%, answer position within 15%-35%) instead of relying on authors' discipline; the lower bounds were added after the first rewrite showed the opposite tell (the correct answer was almost never the longest). Applies before the Ukrainian translation (R19) so it is translated once.
 - v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
 - v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.
 - v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.

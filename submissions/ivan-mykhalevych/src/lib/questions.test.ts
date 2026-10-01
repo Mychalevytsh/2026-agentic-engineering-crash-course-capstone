@@ -56,6 +56,7 @@ describe("getQuestions (spec R3)", () => {
 });
 
 describe("no answer tell (spec R2)", () => {
+  const MIN_SHARE = 0.1;
   const MAX_SHARE = 0.3;
   const optionLengths = (q: Question) => q.options.map((option) => option.length);
   const isStrictly = (q: Question, pick: (lengths: number[]) => number) => {
@@ -64,15 +65,17 @@ describe("no answer tell (spec R2)", () => {
     return lengths[q.correctIndex] === target && lengths.filter((length) => length === target).length === 1;
   };
 
-  it.each(LEVELS)("%s: the correct option is rarely the strictly longest", (level) => {
+  it.each(LEVELS)("%s: the correct option is the strictly longest in 10% to 30% of the questions", (level) => {
     const questions = QUESTION_BANK.filter((q) => q.level === level);
     const share = questions.filter((q) => isStrictly(q, (l) => Math.max(...l))).length / questions.length;
+    expect(share).toBeGreaterThanOrEqual(MIN_SHARE);
     expect(share).toBeLessThanOrEqual(MAX_SHARE);
   });
 
-  it.each(LEVELS)("%s: the correct option is rarely the strictly shortest", (level) => {
+  it.each(LEVELS)("%s: the correct option is the strictly shortest in 10% to 30% of the questions", (level) => {
     const questions = QUESTION_BANK.filter((q) => q.level === level);
     const share = questions.filter((q) => isStrictly(q, (l) => Math.min(...l))).length / questions.length;
+    expect(share).toBeGreaterThanOrEqual(MIN_SHARE);
     expect(share).toBeLessThanOrEqual(MAX_SHARE);
   });
 
