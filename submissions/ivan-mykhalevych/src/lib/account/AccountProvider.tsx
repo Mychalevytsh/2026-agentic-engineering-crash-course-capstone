@@ -28,6 +28,7 @@ export type Session =
   | { status: "signedIn"; user: AccountUser; data: AccountData };
 
 type Outcome = Promise<string | null>;
+export type SaveOutcome = "account" | "device";
 
 interface AccountContext {
   session: Session;
@@ -38,7 +39,7 @@ interface AccountContext {
   changePassword: (current: string, next: string) => Outcome;
   deleteAccount: (password: string) => Outcome;
   importProgress: () => Outcome;
-  record: (attempt: Attempt) => Promise<void>;
+  record: (attempt: Attempt) => Promise<SaveOutcome>;
 }
 
 const Context = createContext<AccountContext | null>(null);
@@ -127,12 +128,13 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           const result = await send("POST", "/api/data/attempts", attempt);
           if (result.ok) {
             await load();
-            return;
+            return "account";
           }
           if (result.error === "not-signed-in") await load();
         }
         saveBestScore(attempt.level, attempt.percent);
         logAttempt(attempt);
+        return "device";
       },
     }),
     [session, authenticate, settle, load],

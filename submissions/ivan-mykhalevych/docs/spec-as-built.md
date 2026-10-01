@@ -124,14 +124,14 @@ Tables: `users(id, email unique, display_name, password_hash, created_at)`,
 
 | # | Observation (code) | Spec status | Judgment |
 |---|---|---|---|
-| 1 | `record` falls back to local storage when the server save fails or the session is still loading | R27 says only "recorded on the server while signed in" | Add to R27; intended, prevents losing a finished quiz. Side effect: the result sits in the guest profile and is not in the account |
+| 1 | `record` falls back to local storage when the server save fails or the session is still loading | R27 (v0.21) | In v0.23 the score screen also tells a signed-in user when the result stayed on the device (`quiz.savedOnDevice`) |
 | 2 | A malformed email at login gives `invalid-credentials` and is not counted by the throttle | R24 silent | Harmless (no account can have such an email); document |
 | 3 | `register` hashes before the uniqueness check, so timing is the same for taken and free emails | R24 allows `email-taken` anyway | Fine |
 | 4 | ~~`percent` and `results.length` were not checked against `correct/total`~~ | Fixed in v0.22: `parseAttempts` requires consistent numbers | Closed. A client can still invent the answers themselves |
-| 5 | ~~Sessions per user were unbounded~~ (fixed in v0.22: at most 10); users are still uncapped and registration has no rate limit | R23/R24 | Known limit (single-node course project) |
-| 6 | Guests produce a console 401 on `/api/auth/me` at every load | R26 requires 401 for "not signed in" | Accepted; could be 200 `{user:null}` if the noise matters |
+| 5 | ~~Sessions per user were unbounded~~ (v0.22: at most 10); ~~registration was unlimited~~ (v0.23: 30 per hour for the server, 429 `too-many-registrations`); there is still no per-IP limit | R23/R24 | Known limit (single-node course project) |
+| 6 | ~~Guests produced a console 401 on `/api/auth/me`~~ | Fixed in v0.23: 200 `{user: null}` | Closed |
 | 7 | The Origin check compares host only, not scheme | R26 says "host equals Host" | Matches the spec |
-| 8 | Quiz progress is not saved mid-quiz; a reload loses the running quiz | R3/R5 silent | Intended by KISS; document |
+| 8 | ~~A reload lost the running quiz~~ | Fixed in v0.23: kept in `sessionStorage` (`java-trainer-quiz:{level}`) | Closed |
 | 9 | Display name on the account page is the only profile data; the guest profile name and the account display name are unrelated | R27 silent | Fine |
 | 10 | `/api` answers 404/405/400 `body-invalid`/500 `internal` | Added to the spec in v0.19-v0.20 | In sync |
 

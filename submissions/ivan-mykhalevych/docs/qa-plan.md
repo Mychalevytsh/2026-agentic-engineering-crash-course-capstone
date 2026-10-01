@@ -131,3 +131,14 @@ a known email (it is what R24 specifies); no per-IP or global rate limit and syn
 only; a 401 on `/api/auth/me` shows in the console for guests; a brief English flash before the
 Ukrainian text on a hard load; the cookie is `Secure` in production, so test with `npm run dev`.
 Not tested: clearing cookies mid-session, the dashboard on mobile while signed in.
+
+## Gap fixes v0.23 (author agent, built-in browser, plan in `docs/plan-gap-fixes.md`)
+
+| Check | Result |
+|---|---|
+| Guest `GET /api/auth/me` | 200 `{"user":null}` (curl), no 401 in the console |
+| Reload in the middle of a quiz | resumed at question 2 with the chosen answer; the `sessionStorage` key was removed after finishing |
+| Failing server save while signed in | score screen shows "saved on this device only" (Ukrainian text verified); result is in the local profile |
+| Registration limit | unit-tested only (30 per hour, 429); not exercised in the browser |
+
+Not yet run: an independent QA agent on these changes (step 4 of the plan).
