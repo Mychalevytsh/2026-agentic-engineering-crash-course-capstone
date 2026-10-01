@@ -36,7 +36,7 @@ Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to c
 ## Що вирішував(ла) я, а що агент / What I decided vs what the agent did
 
 **I decided:**
-- The idea (I changed it early, before writing this app's code), and the scope: a trainer (not an interview simulator), three levels, English only, "KISS is the main rule", and "no comments in code".
+- The idea (I changed it early, before writing this app's code), and the scope: a trainer (not an interview simulator), three levels, English first (Ukrainian was added later at my request), "KISS is the main rule", and "no comments in code".
 - The look (dark code-editor theme, generated background), asking for mistakes review, shuffle, best scores and code-snippet questions, and how much process to use (few subagents, watch token cost).
 - Approving the documented `RED_COMMIT=1` exception instead of ad-hoc bypasses, and asking for the independent QA run in a real browser.
 - TODO: add your own decisions, e.g. corrections you made to the questions after reviewing them.
@@ -70,7 +70,7 @@ These features were built after the core project above and merged into this bran
 without passwords, a per-profile attempt log (capped at 200), a dashboard with mastery per topic,
 weakest topics and a streak, a `/logs` page with JSON export, and best scores per profile with
 automatic migration of the old data. Seven spec-first slices, each with a failing-test commit
-before the implementation (see the table in `docs/capstone-dod.md`), 168 tests in total, a second
+before the implementation (see the table in `docs/capstone-dod.md`), 168 tests at that point, a second
 reviewer run (9 findings fixed or consciously left) and a second independent QA run in the
 built-in browser (12 of 13 checks passed; the failing one, a mobile header overflow with long
 profile names, was fixed and verified). Honest caveats: two logic-only slices could not be
@@ -84,10 +84,10 @@ re-run by the QA agent, and a few low-severity review findings were left open on
 - **Ukrainian.** A language switcher with browser-language detection, a dictionary per language with compile-time key parity, correct Ukrainian plural forms, and all 120 questions translated with their code and identifiers untouched; the no-tell bounds also hold for the Ukrainian options. An independent language review found no fidelity problems but real wording issues (Thread vs Stream both being "потік", a gender error, "перевірювані" for "checked"), fixed in `e264fca`. An independent QA run passed 9 of 9 areas and found one overflow bug with a 24-character profile name, also fixed.
 - **Honest caveats.** The Ukrainian text was written by the agent and reviewed by another agent, not yet by a human; the author should read it. The question bank was produced with throw-away generator scripts that are not in the repository (the TypeScript files are the source of truth now). Two accessibility areas stay untested: screen readers and other browsers.
 
-## Accounts (branch `feature/accounts`, merged only if the author decides so)
+## Accounts (built on `feature/accounts`, merged into this branch in `8050208`)
 
 - **What.** Real accounts next to the guest mode: email and password, sessions in an HttpOnly cookie, per-account best scores and attempt log on the server, import of a guest profile. Built on Node's built-in `node:sqlite` and `node:crypto` scrypt, so there are no new dependencies. Spec R20-R28 (`docs/spec.md`, `docs/user-management.md`).
-- **Process.** Spec first, then a failing-test commit and a green commit per slice (validation and hashing, users and sessions, authentication, account data, HTTP API, client), 279 tests. One independent security review and one independent black-box QA run; their findings were fixed test-first (see "Accounts" in `docs/qa-plan.md`).
+- **Process.** Spec first, then a failing-test commit and a green commit per slice (validation and hashing, users and sessions, authentication, account data, HTTP API, client), 294 tests at the end. One independent security review and one independent black-box QA run; their findings were fixed test-first (see "Accounts" in `docs/qa-plan.md`).
 - **Honest caveats.** Hand-rolled authentication; the review found no high issues but this is not a replacement for a professional audit. SQLite is a single-node file, so it will not run as is on serverless hosting. Known limits (lockout abuse, no per-IP rate limit) are listed in the QA plan.
 
 ## Gap fixes from a reverse-engineered spec (spec v0.20-v0.23)

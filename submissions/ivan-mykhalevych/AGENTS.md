@@ -3,7 +3,7 @@
 The code is the single source of truth. `docs/reference.md` describes it (derived from the code);
 read it before changing behaviour. `docs/spec.md` is the history of the requirements, not the authority.
 `docs/capstone-dod.md` is the main instruction and Definition of Done (deadline 4 Oct);
-`docs/design.md` holds the design tokens.
+`docs/design.md` holds the design rules (colour values live in `src/app/globals.css`).
 
 ## Main rule: KISS (keep it simple)
 Do the simplest thing that satisfies the task. No extra features, abstractions,

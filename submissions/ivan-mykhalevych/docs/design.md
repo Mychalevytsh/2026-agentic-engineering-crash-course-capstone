@@ -1,40 +1,35 @@
 # Design tokens (v0.1)
 
-Status: written before the visual implementation. Code reads these tokens from
-`src/app/globals.css`; change a value there, not in components.
+Status: describes the design as implemented. The code is the source of truth; colour values are in
+`src/app/globals.css`, so change a value there, not in components or here.
 
 ## Mood
 A dark "code editor" feel with a warm Java-coffee accent. A light theme follows the
 system setting (`prefers-color-scheme`). Dark is the default.
 
 ## Colour tokens
+The values live only in `src/app/globals.css` (a dark set, and a light set under
+`prefers-color-scheme: light`); this file does not repeat them, so they cannot drift. The tokens
+and their use: `bg` page background, `surface` cards, `line` borders, `ink` main text, `muted`
+secondary text, `accent` links, primary buttons and highlights, `accent-2` gradient partner of
+`accent`, `on-accent` text on accent buttons, `good` correct answers, `bad` wrong answers and errors.
 
-| Token | Dark | Light | Use |
-|---|---|---|---|
-| `bg` | `#0b1020` | `#fbf6ee` | page background |
-| `surface` | `rgba(255,255,255,0.05)` | `rgba(255,255,255,0.75)` | cards |
-| `line` | `rgba(255,255,255,0.12)` | `rgba(27,31,42,0.12)` | borders |
-| `ink` | `#e8ecf6` | `#1b1f2a` | main text |
-| `muted` | `#9aa4bf` | `#5b6478` | secondary text |
-| `accent` | `#f59e0b` | `#c2410c` | links, primary buttons, highlights |
-| `accent-2` | `#ea580c` | `#b45309` | gradient partner for accent |
-| `on-accent` | `#1a1206` | `#ffffff` | text on accent buttons |
-| `good` | `#22c55e` | `#15803d` | correct answer |
-| `bad` | `#f87171` | `#b91c1c` | wrong answer |
-
-Text on accent buttons uses `on-accent`. Every text and background pairing must reach a 4.5:1
-contrast ratio in both themes; a measured audit on 2026-10-01 found the light-theme button
-label at 3.58:1, which is why `on-accent` and the light `accent-2` exist.
+Every text and background pairing must reach a 4.5:1 contrast ratio in both themes; a measured
+audit on 2026-10-01 found the light-theme button label at 3.58:1, which is why `on-accent` and the
+light `accent-2` exist. Native dropdown option lists are themed too (`select option` and
+`select option:checked` in `globals.css`), because the browser's default white list made the
+selected language unreadable.
 
 ## Typography
-- Headings and code: JetBrains Mono.
-- Body: Geist Sans.
-- Scale: page title 2.25rem, card title 1.25rem, body 1rem, caption 0.875rem.
+- Headings and code: JetBrains Mono. Body: Geist Sans.
+- Scale as used in the components: page title `text-3xl` (1.875rem), home hero `text-4xl`,
+  `sm:text-5xl`, card title `text-xl` (1.25rem), body 1rem, captions and controls `text-sm` (0.875rem).
 
 ## Shape and motion
-- Radius: 1rem for cards, 0.75rem for buttons and options.
+- Radius: 1rem (`rounded-2xl`) for cards, 0.75rem (`rounded-xl`) for buttons, options, inputs and menus.
 - Cards use a 1px `line` border and a soft backdrop blur.
-- Answer reveal: 150 ms colour transition. Honour `prefers-reduced-motion`.
+- Colour and opacity changes use Tailwind's default 150 ms transition; `prefers-reduced-motion`
+  switches transitions and animations off.
 
 ## Background
 Generated inline SVG (no external images, no licensing issues): a navy gradient, two

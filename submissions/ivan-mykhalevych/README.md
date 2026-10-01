@@ -121,12 +121,11 @@ The project is a capstone of the Agentic Engineering course and was built with C
 |---|---|
 | `docs/reference.md` | What the code does, section by section (the documentation to read) |
 | `docs/spec.md` | The original requirements and their change log (history, not authority) |
-| `docs/design.md` | Colours, typography and layout rules |
+| `docs/design.md` | Design rules and rationale (colour values are in `src/app/globals.css`) |
 | `docs/qa-plan.md` | Reviews, QA runs, findings and decisions |
 | `docs/capstone-dod.md` | The course assignment and the Definition of Done with proof |
 | `docs/plan-gap-fixes.md` | The plan for closing the last gaps found in the code |
 | `docs/pr-description.md` | The text for the pull request |
-| `docs/worklog-accounts.md` | The hand-off log of the accounts work |
 
 ## Project layout
 

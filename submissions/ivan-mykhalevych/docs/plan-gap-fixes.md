@@ -1,5 +1,7 @@
 # Plan: close the remaining as-built gaps (spec-driven)
 
+Status: done, kept as history. The finished behaviour is described in `docs/reference.md`.
+
 Source: the differences table in the reverse-engineered description (now merged into `docs/reference.md`) and the limits left open in spec v0.22.
 Method for every slice: spec text first (all four slices are written into `docs/spec.md` v0.23
 before any code), then a failing-test commit (`RED_COMMIT=1`), then the implementation commit
