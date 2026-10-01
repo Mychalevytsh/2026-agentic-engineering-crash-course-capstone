@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useAccount } from "@/lib/account/AccountProvider";
 import { buildAttempt } from "@/lib/attempts";
 import { localizeQuestion, topicLabel } from "@/lib/localize";
 import { getMistakes } from "@/lib/mistakes";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
+import { clearRunningQuiz, loadRunningQuiz, saveRunningQuiz } from "@/lib/quizStore";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
 import { QUIZ_LENGTH, pickQuiz } from "@/lib/shuffle";
@@ -16,11 +17,13 @@ import { useT } from "@/lib/useLanguage";
 type QuizOrStartScreen = QuizState | null;
 type Action =
   | { type: "start"; questions: Question[] }
+  | { type: "restore"; state: QuizState }
   | { type: "select"; option: number }
   | { type: "next" };
 
 function reducer(state: QuizOrStartScreen, action: Action): QuizOrStartScreen {
   if (action.type === "start") return initQuiz(action.questions);
+  if (action.type === "restore") return action.state;
   if (state === null) return state;
   return action.type === "select" ? selectOption(state, action.option) : nextQuestion(state);
 }
@@ -34,7 +37,8 @@ const ghostBtn =
 export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
   const { language, t, tn } = useT();
-  const { record } = useAccount();
+  const { record, session } = useAccount();
+  const [savedOnDevice, setSavedOnDevice] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const screen = state === null ? "start" : state.finished ? "score" : state.index;
 
@@ -48,10 +52,23 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     if (!state?.finished || loggedQuiz.current === state) return;
     loggedQuiz.current = state;
     const attempt = buildAttempt(level, state.questions, state.answers, Date.now());
-    void record(attempt);
-  }, [state, level, record]);
+    const wasSignedIn = session.status === "signedIn";
+    void record(attempt).then((outcome) => setSavedOnDevice(wasSignedIn && outcome === "device"));
+  }, [state, level, record, session.status]);
 
-  const start = () =>
+  useEffect(() => {
+    const saved = loadRunningQuiz(level);
+    if (saved !== null) dispatch({ type: "restore", state: saved });
+  }, [level]);
+
+  useEffect(() => {
+    if (state === null) return;
+    if (state.finished) clearRunningQuiz(level);
+    else saveRunningQuiz(level, state);
+  }, [state, level]);
+
+  const start = () => {
+    setSavedOnDevice(false);
     dispatch({
       type: "start",
       questions: pickQuiz(
@@ -59,6 +76,7 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
         Math.random,
       ),
     });
+  };
 
   if (state === null) {
     return (
@@ -84,6 +102,11 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
           </h2>
           <p className="font-mono text-5xl font-bold text-accent">{score.percent}%</p>
           <p className="text-muted">{t("quiz.scoreSummary", { correct: score.correct, total: score.total })}</p>
+          {savedOnDevice && (
+            <p role="status" className="text-sm text-bad">
+              {t("quiz.savedOnDevice")}
+            </p>
+          )}
           <div className="flex flex-wrap gap-3">
             <button onClick={start} className={primaryBtn}>
               {t("quiz.tryAgain")}

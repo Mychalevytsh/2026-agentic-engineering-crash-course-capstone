@@ -11,6 +11,7 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "invalid-credentials": "error.invalid-credentials",
   "wrong-password": "error.wrong-password",
   "too-many-attempts": "error.too-many-attempts",
+  "too-many-registrations": "error.too-many-registrations",
   "forbidden-origin": "error.forbidden-origin",
   "network-error": "error.network-error",
   "not-signed-in": "error.not-signed-in",

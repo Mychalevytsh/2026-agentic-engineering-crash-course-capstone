@@ -116,6 +116,10 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       -> `622e388`, client `c3218a9` -> `421f991`, review fixes `5150634` -> `a902b4b`, QA fixes
       `66b5bd2`. 279 tests. Independent security
       review and black-box QA in `docs/qa-plan.md` ("Accounts"), no high findings.
+- [x] **Plan-driven gap fixes (spec v0.23).** Plan `docs/plan-gap-fixes.md` (`3dfb2ed`), red
+      `test(red): guest me answer, registration limit, quiz persistence`, green `8de089d` and
+      `f7bb6c4` (resume a running quiz, registration limit, guest `me` answer, saved-on-device
+      notice). Browser checks and the independent QA run: `docs/qa-plan.md`, "Gap fixes v0.23".
 - [ ] Optional: autonomy log (`templates/autonomy-log.md`), Project Factory. Skipped unless
       time allows.
 

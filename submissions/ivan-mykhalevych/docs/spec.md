@@ -36,8 +36,12 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
 questions chosen at random from the pool, or the whole pool when it is smaller, with the option
 order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
-deterministic. A running quiz lives only in memory: reloading the page ends it, and nothing is
-saved until it is finished (R12).
+deterministic. A running quiz is kept in `sessionStorage` under `java-trainer-quiz:{level}` as JSON after every
+state change, restored when the page loads if it is valid for that level, and removed when the
+quiz finishes or a new one starts. `serializeQuiz(state)` and `parseQuiz(raw, level)` are pure; `parseQuiz`
+never throws and returns `null` for invalid JSON, a finished quiz, questions that are not
+R1-shaped, answers whose length differs from the questions, an index outside the questions, or a
+selected option outside 0..3. Blocked storage is ignored. Nothing is logged until the quiz finishes (R12).
 
 ### R4 Scoring
 `scoreQuiz(questions, answers)` returns `{ correct, total, percent }`.
@@ -296,8 +300,9 @@ returned or logged in clear text.
   also deletes every expired session.
 
 ### R24 Authentication service
-- `register({ email, password, displayName })` returns a validation code, `email-taken`, or the
-  new user plus a session token.
+- `register({ email, password, displayName })` returns a validation code, `email-taken`,
+  `too-many-registrations` (30 or more accounts were created in the last hour by anyone; checked
+  before any hashing) or the new user plus a session token.
 - `login({ email, password })` creates a new session. A wrong password and an unknown email give
   the same `invalid-credentials` (a dummy hash is verified for an unknown email so the timing is
   similar). A malformed email gets the same `invalid-credentials` after the dummy hash and is not
@@ -330,8 +335,11 @@ JSON under `/api`, all dynamic:
   `GET /api/auth/me`, `PATCH /api/auth/me` (display name), `POST /api/auth/password`,
   `DELETE /api/auth/me` (body: the password).
 - `GET /api/data`, `POST /api/data/attempts`, `POST /api/data/import`.
+- `GET /api/auth/me` without a valid session answers 200 `{ "user": null }` (a guest is not an
+  error and must not show a failed request in the console); every other endpoint that needs a
+  session answers 401 `not-signed-in`.
 - Status codes: 200 or 201 on success, 400 with `{ "error": <code> }` for validation errors, 401
-  for "not signed in" or `invalid-credentials`, 409 `email-taken`, 429 `too-many-attempts`,
+  for "not signed in" or `invalid-credentials`, 409 `email-taken`, 429 `too-many-attempts` or `too-many-registrations`,
   403 `forbidden-origin`, 413 `body-too-large`, 415 `json-required`.
 - A request that changes state (anything but GET) must have an `Origin` header whose host
   equals the request's `Host`, otherwise 403 `forbidden-origin`. Bodies must be JSON of at most
@@ -363,7 +371,9 @@ JSON under `/api`, all dynamic:
   (R25) and does not delete the local data.
 - If saving a finished quiz to the server fails, or the session has not finished loading, the
   result is saved to the active guest profile instead (R12, R16), so it is not lost. It then
-  belongs to that profile and is not in the account until imported.
+  belongs to that profile and is not in the account until imported. `record` reports where the
+  result went (`account` or `device`); when a signed-in user's result went to the device, the score
+  screen shows the message `quiz.savedOnDevice`.
 
 ### R28 Security properties
 - No SQL is assembled from user input.
@@ -446,6 +456,7 @@ and multi-server deployment (SQLite is a single-node database).
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
 - v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
+- v0.23 (plan `docs/plan-gap-fixes.md`): R3 keeps a running quiz in `sessionStorage`, R24 and R26 add a global registration limit (429 `too-many-registrations`), R26 makes `GET /api/auth/me` answer 200 `{user: null}` for guests, R27 tells the user when a result was saved on the device only.
 - v0.22 (gap fixes): an attempt must agree with its results (R12, applies to guest and account data) and a user keeps at most 10 sessions (R23); the "forged scores" and "unbounded sessions" limits of v0.21 shrink accordingly.
 - v0.21 (as-built gaps, from `docs/spec-as-built.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
 - v0.20 (review and QA fixes): the body limit is enforced while reading, handler errors answer 500 `internal`, expired failure rows and sessions are purged, an attempt holds at most 100 results, and wrong current passwords show their own message.
