@@ -9,7 +9,7 @@ in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
 - Levels: `junior`, `middle`, `senior`. At least 40 questions per level in the pool; a quiz draws 12 of them at random (R3). Two languages: English and Ukrainian (R17-R19).
-- Static question bank in code. No backend and no authentication. Profiles are just local names in the browser with no passwords (R10); per-profile data (best scores, attempt log) lives in `localStorage`.
+- Static question bank in code. Two modes: **guest** (local profiles without passwords, R10/R11, data in `localStorage`) and **signed-in** (accounts with email and password, data on the server, R20-R28). Guest mode keeps working without an account. The server uses Node's built-in SQLite and `scrypt`, so there are no new dependencies.
 - Next.js App Router, TypeScript strict, Vitest.
 
 ## Requirements
@@ -257,12 +257,120 @@ All functions are pure and work on the attempt log of one profile (R12).
 - The Ukrainian text is written by the agent and counts as final only after the author has
   reviewed it.
 
+### R20 Accounts and storage
+- An account has `id`, `email` (unique, stored trimmed and lower-case), `displayName`
+  (1 to 24 characters), a password hash and `createdAt`. Per account the server keeps the best
+  score per level and an attempt log in the R12 format, capped at 200.
+- The database is a SQLite file, `data/app.sqlite` by default, overridable with the
+  `DATABASE_FILE` environment variable; tests use `:memory:`. The schema is created on first
+  use and the `data/` folder is git-ignored. Every statement is parameterized.
+
+### R21 Input validation
+Pure functions return a code, never a message (messages come from the dictionary, R18):
+- `validateEmail(raw)` trims and lower-cases; it is valid with 3 to 254 characters, exactly one
+  `@`, a non-empty local part, a domain containing a dot that does not start or end with it, and
+  no whitespace. Otherwise `email-invalid`.
+- `validatePassword(raw)` accepts 10 to 128 characters (`password-short`, `password-long`) and
+  rejects a short built-in list of very common passwords, compared in lower case
+  (`password-common`).
+- `validateDisplayName(raw)` trims; 1 to 24 characters (`name-empty`, `name-too-long`).
+
+### R22 Password hashing
+`hashPassword(password)` returns `scrypt$16384$8$1$<salt>$<hash>` with a random 16-byte salt and a
+64-byte key. `verifyPassword(password, stored)` compares in constant time and returns `false`
+for a wrong password or a malformed stored value; it never throws. Passwords are never stored,
+returned or logged in clear text.
+
+### R23 Sessions
+- `createSession(db, userId, now)` returns a random 32-byte token (base64url). Only the SHA-256
+  hash of the token is stored, with the user id and an expiry 30 days after `now`.
+- `getSessionUser(db, token, now)` returns the user for a known, unexpired token and `null`
+  otherwise; an expired session is deleted when it is found.
+- `deleteSession(db, token)` and `deleteUserSessions(db, userId, exceptToken?)` remove sessions.
+- The session cookie is named `session` with `HttpOnly`, `SameSite=Lax`, `Path=/`, a Max-Age of
+  30 days, and `Secure` in production. Logging out clears it.
+
+### R24 Authentication service
+- `register({ email, password, displayName })` returns a validation code, `email-taken`, or the
+  new user plus a session token.
+- `login({ email, password })` creates a new session. A wrong password and an unknown email give
+  the same `invalid-credentials` (a dummy hash is verified for an unknown email so the timing is
+  similar). After 5 failed logins for an email within 15 minutes the account is locked for the
+  rest of that window and returns `too-many-attempts`, even for the correct password; a
+  successful login resets the counter.
+- `changePassword(userId, current, next, currentToken)` needs the current password
+  (`invalid-credentials`), validates the new one, stores a new hash and deletes every other
+  session of that user.
+- `updateDisplayName(userId, name)` validates like R21.
+- `deleteAccount(userId, password)` needs the password and deletes the user together with its
+  sessions, best scores and attempts.
+- No result other than `email-taken` at registration reveals whether an email exists.
+
+### R25 Account data
+- `getData(userId)` returns `{ best, attempts }` with the attempts oldest first.
+- `recordAttempt(userId, attempt)` validates the attempt with the R12 rules, appends it, keeps
+  the newest 200 and raises the best score of its level to the maximum.
+- `importData(userId, { best, attempts })` merges: the best score per level is the maximum
+  (R16), attempts are added, de-duplicated by `at`, sorted by `at` and capped to the newest 200.
+  Invalid entries are dropped and at most 200 attempts are read.
+- Every call is scoped by the user id taken from the session, never from the request body.
+
+### R26 HTTP API
+JSON under `/api`, all dynamic:
+- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`,
+  `GET /api/auth/me`, `PATCH /api/auth/me` (display name), `POST /api/auth/password`,
+  `DELETE /api/auth/me` (body: the password).
+- `GET /api/data`, `POST /api/data/attempts`, `POST /api/data/import`.
+- Status codes: 200 or 201 on success, 400 with `{ "error": <code> }` for validation errors, 401
+  for "not signed in" or `invalid-credentials`, 409 `email-taken`, 429 `too-many-attempts`,
+  403 `forbidden-origin`, 413 `body-too-large`, 415 `json-required`.
+- A request that changes state (anything but GET) must have an `Origin` header whose host
+  equals the request's `Host`, otherwise 403 `forbidden-origin`. Bodies must be JSON of at most
+  100 kB.
+- Responses never contain a password hash or a session token (the token only travels in the
+  `Set-Cookie` header). Error bodies contain codes only, never stack traces. Passwords and tokens
+  are never written to logs.
+
+### R27 Account interface
+- The header keeps the language switcher. In guest mode it shows the profile switcher plus the
+  links "Sign in" and "Create account". When signed in it shows the display name, an "Account"
+  link and a "Sign out" button instead of the profile switcher.
+- Pages: `/login`, `/register` and `/account` (change display name, change password, import this
+  browser's progress, delete account). `/account` redirects a signed-out visitor to `/login`;
+  `/login` and `/register` redirect a signed-in visitor to `/account`.
+- Forms show the translated message for each error code, disable the submit button while a
+  request runs and never show or keep the password after sending. Password fields use the
+  `current-password` and `new-password` autocomplete values.
+- While signed in, a finished quiz is recorded on the server (R25) instead of in local storage;
+  the dashboard, the logs page, the best-score labels and the JSON export read the server data.
+- After signing in or registering in a browser that has guest progress, the account page offers
+  "Import progress from this browser" for the active guest profile. Importing copies the data
+  (R25) and does not delete the local data.
+
+### R28 Security properties
+- No SQL is assembled from user input.
+- Tokens are random, stored only as hashes, and the cookie is not readable from JavaScript.
+- Login throttling and uniform error results follow R24.
+- No account can read or change another account's data (R25 scoping).
+- Instead of CSRF tokens the API relies on `SameSite=Lax`, the `Origin` check and JSON-only
+  bodies (R26).
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given the email "  Ann@Example.COM ", the normalized email is `ann@example.com`; given
+  `no-at`, the code is `email-invalid`; given a 9-character password, `password-short`.
+- Given a hash made by `hashPassword("correct horse battery")`, `verifyPassword` is true for
+  that password, false for another one and false for a tampered or malformed stored value.
+- Given a session created at time t, the user is found at t plus 29 days and not at t plus
+  31 days, and the expired session is gone.
+- Given 5 wrong passwords and then the correct one within 15 minutes, the result is
+  `too-many-attempts`; after 15 minutes the correct password works.
+- Given accounts A and B, B cannot read or change A's data, and deleting A removes all of it.
+- Given a POST without a matching `Origin` header, the API answers 403 `forbidden-origin`.
 - Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12
   for the same seed; given a pool of 5, it returns all 5.
 - Given any level, the correct option is the strictly longest option in 10% to 30% of its
@@ -312,11 +420,14 @@ All functions are pure and work on the attempt log of one profile (R12).
   `correctIndex` still points at the original correct text.
 
 ## Out of scope
-Spaced repetition, flashcards, authentication or passwords, cloud sync, languages other than
-English and Ukrainian, a translated page title or 404 page, right-to-left layouts.
+Spaced repetition, flashcards, languages other than English and Ukrainian, a translated page
+title or 404 page, right-to-left layouts. For accounts: email verification, password reset by
+email, two-factor authentication, social login, roles or an admin area, rate limiting by IP,
+and multi-server deployment (SQLite is a single-node database).
 
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
+- v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.
 - v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).
 - v0.16 (Ukrainian questions): R19 also applies the length no-tell bounds of R2 to the Ukrainian options.
 - v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest and shortest within 10%-30%, answer position within 15%-35%) instead of relying on authors' discipline; the lower bounds were added after the first rewrite showed the opposite tell (the correct answer was almost never the longest). Applies before the Ukrainian translation (R19) so it is translated once.
