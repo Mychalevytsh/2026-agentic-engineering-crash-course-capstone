@@ -65,3 +65,11 @@ describe("sessions (spec R23)", () => {
     expect(getSessionUser(db, keep, NOW)).toBeNull();
   });
 });
+
+describe("session housekeeping (spec R23)", () => {
+  it("removes expired sessions when a session is created", () => {
+    createSession(db, userId, NOW);
+    createSession(db, userId, NOW + SESSION_TTL_MS + 1);
+    expect(storedHashes()).toHaveLength(1);
+  });
+});

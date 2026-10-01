@@ -1,5 +1,6 @@
 import { validateDisplayName, validateEmail, validatePassword } from "../lib/auth/validation";
 import type { DisplayNameError, PasswordError } from "../lib/auth/validation";
+import { transaction } from "./db";
 import type { Db } from "./db";
 import { hashPassword, verifyPassword } from "./password";
 import { createSession, deleteSession, deleteUserSessions } from "./sessions";
@@ -66,6 +67,7 @@ function readFailures(db: Db, email: string, now: number): FailureRow | null {
 }
 
 function recordFailure(db: Db, email: string, now: number): void {
+  db.prepare("DELETE FROM login_failures WHERE window_start <= ?").run(now - LOCK_WINDOW_MS);
   const current = readFailures(db, email, now);
   if (current === null) {
     db.prepare("INSERT INTO login_failures (email, count, window_start) VALUES (?, 1, ?)").run(email, now);
@@ -104,13 +106,12 @@ export function register(db: Db, input: Registration, now: number): AuthResult {
   const name = validateDisplayName(input.displayName);
   if (!name.ok) return name;
 
-  const created = createUser(
-    db,
-    { email: email.email, displayName: name.name, passwordHash: hashPassword(input.password) },
-    now,
-  );
-  if (created === "email-taken") return { ok: false, error: "email-taken" };
-  return { ok: true, user: created, token: createSession(db, created.id, now) };
+  const passwordHash = hashPassword(input.password);
+  return transaction(db, (): AuthResult => {
+    const created = createUser(db, { email: email.email, displayName: name.name, passwordHash }, now);
+    if (created === "email-taken") return { ok: false, error: "email-taken" };
+    return { ok: true, user: created, token: createSession(db, created.id, now) };
+  });
 }
 
 export function login(db: Db, input: Credentials, now: number): AuthResult {
@@ -146,8 +147,11 @@ export function changePassword(
   const password = validatePassword(next);
   if (!password.ok) return password;
 
-  updatePasswordHash(db, userId, hashPassword(next));
-  deleteUserSessions(db, userId, currentToken);
+  const newHash = hashPassword(next);
+  transaction(db, () => {
+    updatePasswordHash(db, userId, newHash);
+    deleteUserSessions(db, userId, currentToken);
+  });
   return { ok: true };
 }
 

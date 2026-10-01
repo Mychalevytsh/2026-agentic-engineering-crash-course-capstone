@@ -35,7 +35,7 @@ interface Context {
 type Handler = (context: Context) => ApiResponse;
 
 const SESSION_COOKIE = "session";
-const MAX_BODY_BYTES = 100_000;
+export const MAX_BODY_BYTES = 100_000;
 const COOKIE_MAX_AGE_SECONDS = SESSION_TTL_MS / 1000;
 
 const ERROR_STATUS: Partial<Record<AuthError, number>> = {
@@ -147,11 +147,11 @@ const handlers: Record<string, Record<string, Handler>> = {
   },
 };
 
-export function handleApi(db: Db, request: ApiRequest, now: number, secure = false): ApiResponse {
+function dispatch(db: Db, request: ApiRequest, now: number, secure: boolean): ApiResponse {
+  if (!Object.hasOwn(handlers, request.path)) return fail(404, "not-found");
   const routes = handlers[request.path];
-  if (routes === undefined) return fail(404, "not-found");
+  if (!Object.hasOwn(routes, request.method)) return fail(405, "method-not-allowed");
   const handler = routes[request.method];
-  if (handler === undefined) return fail(405, "method-not-allowed");
 
   const changesState = request.method !== "GET";
   if (changesState && !sameOrigin(request.origin, request.host)) return fail(403, "forbidden-origin");
@@ -161,4 +161,12 @@ export function handleApi(db: Db, request: ApiRequest, now: number, secure = fal
 
   const token = readToken(request.cookie);
   return handler({ db, now, secure, body: parsed.body, token, user: getSessionUser(db, token, now) });
+}
+
+export function handleApi(db: Db, request: ApiRequest, now: number, secure = false): ApiResponse {
+  try {
+    return dispatch(db, request, now, secure);
+  } catch {
+    return fail(500, "internal");
+  }
 }

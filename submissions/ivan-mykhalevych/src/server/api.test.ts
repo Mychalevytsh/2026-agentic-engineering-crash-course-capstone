@@ -259,3 +259,15 @@ describe("request checks (spec R26)", () => {
     for (const text of bodies) expect(text).not.toMatch(/scrypt|token|password_hash|passwordHash|stack/i);
   });
 });
+
+describe("robustness (spec R26)", () => {
+  it("answers 500 with a code when the database fails", () => {
+    db.close();
+    expect(call("GET", "/api/auth/me", undefined, { cookie: "session=x" })).toEqual({ status: 500, body: { error: "internal" } });
+  });
+
+  it("does not resolve inherited property names as methods", () => {
+    expect(call("constructor", "/api/auth/me").status).toBe(405);
+    expect(call("GET", "/api/constructor").status).toBe(404);
+  });
+});

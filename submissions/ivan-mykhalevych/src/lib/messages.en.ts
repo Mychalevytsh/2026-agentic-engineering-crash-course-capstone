@@ -8,7 +8,7 @@ export const EN = {
   "home.titleStart": "Train the Java questions",
   "home.titleAccent": "everyone asks",
   "home.intro":
-    "Pick a level, answer short multiple-choice questions, and read the explanation after each one. No timers, no sign-up.",
+    "Pick a level, answer short multiple-choice questions, and read the explanation after each one. No timers. An account is optional.",
   "home.junior": "Language basics, strings, collections, OOP",
   "home.middle": "Concurrency, streams, exceptions, the JDK",
   "home.senior": "JVM internals, memory model, Spring, Java 21",
@@ -130,6 +130,7 @@ export const EN = {
   "error.forbidden-origin": "The request was blocked for security reasons. Reload the page and try again.",
   "error.network-error": "The server is not reachable. Try again.",
   "error.not-signed-in": "Your session has expired. Sign in again.",
+  "error.wrong-password": "Wrong password.",
   "error.generic": "Something went wrong. Try again.",
 } as const;
 

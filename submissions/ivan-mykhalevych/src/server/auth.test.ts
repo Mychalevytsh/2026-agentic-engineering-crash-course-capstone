@@ -192,3 +192,12 @@ describe("deleteAccount (spec R24)", () => {
     expect(login(db, { email: "ann@example.com", password: PASSWORD }, NOW)).toEqual({ ok: false, error: "invalid-credentials" });
   });
 });
+
+describe("housekeeping (spec R24)", () => {
+  it("removes expired failure rows when a new failure is recorded", () => {
+    wrongLogin(NOW, "old@example.com");
+    wrongLogin(NOW + LOCK_WINDOW_MS + 1, "new@example.com");
+    const rows = db.prepare("SELECT email FROM login_failures").all() as { email: string }[];
+    expect(rows.map((row) => row.email)).toEqual(["new@example.com"]);
+  });
+});

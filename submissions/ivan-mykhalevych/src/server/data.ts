@@ -2,6 +2,7 @@ import { MAX_ATTEMPTS, parseAttempts } from "../lib/attempts";
 import type { Attempt } from "../lib/attempts";
 import { mergeBestScores, parseBestScores } from "../lib/bestScores";
 import type { BestScores } from "../lib/bestScores";
+import { transaction } from "./db";
 import type { Db } from "./db";
 
 export interface AccountData {
@@ -13,18 +14,6 @@ export type RecordResult = { ok: true } | { ok: false; error: "attempt-invalid" 
 export type ImportInput = { best?: unknown; attempts?: unknown };
 
 export const MAX_STORED_ATTEMPTS = MAX_ATTEMPTS;
-
-function transaction<T>(db: Db, work: () => T): T {
-  db.exec("BEGIN");
-  try {
-    const result = work();
-    db.exec("COMMIT");
-    return result;
-  } catch (error) {
-    db.exec("ROLLBACK");
-    throw error;
-  }
-}
 
 function insertAttempt(db: Db, userId: number, attempt: Attempt): void {
   db.prepare("INSERT INTO attempts (user_id, at, data) VALUES (?, ?, ?)").run(

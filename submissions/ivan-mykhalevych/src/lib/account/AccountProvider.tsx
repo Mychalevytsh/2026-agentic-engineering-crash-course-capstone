@@ -79,13 +79,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const authenticate = useCallback(
-    async (path: string, body: unknown): Outcome => {
-      const result = await send("POST", path, body);
-      if (result.ok) await load();
-      return failure(result);
+  const settle = useCallback(
+    async <T,>(result: ApiResult<T>): Outcome => {
+      if (result.ok) {
+        await load();
+        return null;
+      }
+      if (result.error === "not-signed-in") await load();
+      return result.error;
     },
     [load],
+  );
+
+  const authenticate = useCallback(
+    async (path: string, body: unknown): Outcome => settle(await send("POST", path, body)),
+    [settle],
   );
 
   const value = useMemo<AccountContext>(
@@ -97,35 +105,37 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         await send("POST", "/api/auth/logout");
         setSession({ status: "guest" });
       },
-      updateName: async (displayName) => {
-        const result = await send("PATCH", "/api/auth/me", { displayName });
-        if (result.ok) await load();
+      updateName: async (displayName) => settle(await send("PATCH", "/api/auth/me", { displayName })),
+      changePassword: async (current, next) => {
+        const result = await send("POST", "/api/auth/password", { current, next });
+        if (!result.ok && result.error === "not-signed-in") await load();
         return failure(result);
       },
-      changePassword: async (current, next) => failure(await send("POST", "/api/auth/password", { current, next })),
       deleteAccount: async (password) => {
         const result = await send("DELETE", "/api/auth/me", { password });
         if (result.ok) setSession({ status: "guest" });
+        else if (result.error === "not-signed-in") await load();
         return failure(result);
       },
       importProgress: async () => {
         const local = readLocalProgress();
         if (local === null) return "generic";
-        const result = await send("POST", "/api/data/import", local);
-        if (result.ok) await load();
-        return failure(result);
+        return settle(await send("POST", "/api/data/import", local));
       },
       record: async (attempt) => {
-        if (session.status !== "signedIn") {
-          saveBestScore(attempt.level, attempt.percent);
-          logAttempt(attempt);
-          return;
+        if (session.status === "signedIn") {
+          const result = await send("POST", "/api/data/attempts", attempt);
+          if (result.ok) {
+            await load();
+            return;
+          }
+          if (result.error === "not-signed-in") await load();
         }
-        await send("POST", "/api/data/attempts", attempt);
-        await load();
+        saveBestScore(attempt.level, attempt.percent);
+        logAttempt(attempt);
       },
     }),
-    [session, authenticate, load],
+    [session, authenticate, settle, load],
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

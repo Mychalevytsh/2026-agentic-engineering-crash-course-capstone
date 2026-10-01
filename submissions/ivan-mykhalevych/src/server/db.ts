@@ -4,6 +4,18 @@ import { DatabaseSync } from "node:sqlite";
 
 export type Db = DatabaseSync;
 
+export function transaction<T>(db: Db, work: () => T): T {
+  db.exec("BEGIN");
+  try {
+    const result = work();
+    db.exec("COMMIT");
+    return result;
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
 const DEFAULT_DATABASE_FILE = "data/app.sqlite";
 
 const SCHEMA = `

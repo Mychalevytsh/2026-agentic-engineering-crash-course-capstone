@@ -1,6 +1,6 @@
 # Work log and handoff: accounts (read this first after a context reset)
 
-Last updated: 2026-10-01, at the end of the session that built the account services.
+Last updated: 2026-10-01. All steps below are DONE except the merge decision (step 5): API, UI, security review, QA, fixes and docs are committed (latest `3b50f8a`, 279 tests).
 Branch: `feature/accounts` (from `ivan-mykhalevych`). Nothing is pushed. The author opens the PR
 and pastes the link on the course platform; the course deadline in the author's notes is
 4 October (inclusive). `ivan-mykhalevych` is the safe submission branch; accounts are optional.
