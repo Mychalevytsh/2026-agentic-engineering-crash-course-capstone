@@ -8,7 +8,7 @@ Let a candidate practise Java interview questions by level (junior, middle, seni
 in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
-- Levels: `junior`, `middle`, `senior`. About 10 questions per level. English only.
+- Levels: `junior`, `middle`, `senior`. At least 40 questions per level in the pool; a quiz draws 12 of them at random (R3). Two languages: English and Ukrainian (R17-R19).
 - Static question bank in code. No backend and no authentication. Profiles are just local names in the browser with no passwords (R10); per-profile data (best scores, attempt log) lives in `localStorage`.
 - Next.js App Router, TypeScript strict, Vitest.
 
@@ -19,15 +19,24 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `correctIndex` (0..3), `explanation`, and an optional `code` (a Java snippet).
 
 ### R2 Question bank rules (enforced by tests)
-- At least 10 questions per level.
+- At least 40 questions per level.
 - Ids are unique.
 - Every question satisfies R1.
 - Answer options in one question are similar in length: longest <= 2x shortest,
   so the correct answer cannot be guessed by its length or specificity.
 - Within a level, `correctIndex` is not the same for every question.
+- No answer tell. Per level, the correct option is the strictly longest option in 10% to 30%
+  of the questions and the strictly shortest in 10% to 30%, and each answer position (0 to 3)
+  holds the correct answer in 15% to 35% of the questions. Chance level is 25%. The upper
+  bounds stop "pick the longest" from working; the lower bounds stop "never pick the longest"
+  from working either, so neither habit beats guessing.
 
 ### R3 Selection
-`getQuestions(level)` returns only the questions of that level, in bank order.
+`getQuestions(level)` returns only the questions of that level, in bank order (the pool).
+`QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
+questions chosen at random from the pool, or the whole pool when it is smaller, with the option
+order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
+deterministic.
 
 ### R4 Scoring
 `scoreQuiz(questions, answers)` returns `{ correct, total, percent }`.
@@ -54,7 +63,7 @@ the user's answer (or "Skipped"), the correct answer and the explanation. With n
 and, inside each question, the options in random order. `correctIndex` is updated so it
 still points at the same option text. Inputs are never mutated; `rng` is injected
 (`() => number` in [0, 1)) so tests are deterministic.
-A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
+A quiz starts from a "Start quiz" screen; Start and Try again each draw a new random set (R3)
 (shuffling happens in the click handler, so server and client HTML always match).
 
 ### R8 Best score per level
@@ -83,9 +92,11 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   (`null` when there are none).
 - `validateProfileName(name, existing)` trims the name. It is valid when it has 1 to 24
   characters and is not used by another profile (case-insensitive). The result is
-  `{ ok: true, name }` or `{ ok: false, error }` with a readable message.
+  `{ ok: true, name }` or `{ ok: false, error }` where `error` is a code: `empty`, `too-long`
+  or `duplicate`. The readable message for each code comes from the interface dictionary (R18).
 - `addProfile(state, name, makeId)` returns `{ ok: true, state }` with the new profile added
-  and active, or `{ ok: false, error }` for an invalid name or when 10 profiles exist.
+  and active, or `{ ok: false, error }` for an invalid name (the codes above) or `too-many` when 10 profiles
+  exist.
 - `switchProfile(state, id)` activates an existing profile; an unknown id changes nothing.
 - `removeProfile(state, id)` removes it; if it was active, the first remaining profile becomes
   active (`null` when none remain).
@@ -102,15 +113,15 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   stored under its keys.
 - Every page has a header with the site title link and a profile switcher: a select that
   lists the profiles with the active one selected, an "Add profile" control (name field and
-  button) that shows the R10 validation error, and a "Remove" button for the active profile
+  button) that shows the translated message for the R10 error code, and a "Remove" button for the active profile
   that asks for confirmation.
 - Changes show up in all open components of the tab without a reload, and in other tabs.
 - Removing a profile first saves the removal and deletes the profile's data keys only if the
   removal was really saved. The confirmation names the profile that is active at that moment.
 - `storageAvailable()` is true only when a test value can be written to and removed from
   `localStorage`; it never throws. When storage is blocked the quiz still works, and the
-  dashboard and logs pages say "Your browser is blocking local storage, so progress cannot be
-  saved." instead of showing the loading text forever.
+  dashboard and logs pages say, in the selected language (R18), that the browser is blocking
+  local storage so progress cannot be saved, instead of showing the loading text forever.
 - The header never makes the page scroll horizontally, even on a 375 px wide screen with a
   24-character profile name; long names are cut off inside the select.
 - If the stored profile text exists but cannot be parsed, it is copied to
@@ -185,12 +196,84 @@ All functions are pure and work on the attempt log of one profile (R12).
   into the active profile's scores and the old key is then removed. It runs automatically
   when the app loads, after the default profile exists, and only while the old key exists.
 
+### R17 Language selection
+- The languages are `en` (English) and `uk` (Ukrainian). The language is one browser-wide
+  setting, not a per-profile one.
+- `detectLanguage(preferred)` takes the browser's preferred languages (for example
+  `navigator.languages`) and returns the language of the first entry whose primary subtag is
+  `uk` or `en` (case-insensitive, so `uk-UA` counts). With an empty list or no supported entry
+  it returns `en`.
+- `parseLanguage(raw)` returns `en` or `uk` for exactly that stored text and `null` for
+  anything else.
+- The choice is stored as plain text under `java-trainer-language`. On load the stored value is
+  used when `parseLanguage` accepts it, otherwise `detectLanguage` decides. If storage is blocked
+  the switcher still works until the page is reloaded.
+- The header has a language switcher next to the profile switcher: a select with the options
+  "English" and "Українська", each written in its own language, with a translated accessible
+  label. Changing it updates all text on the page at once without a reload and sets the `lang`
+  attribute of the page.
+- The first server-rendered HTML is English; the page switches to the stored or detected
+  language right after loading (a brief flash is accepted, KISS).
+
+### R18 Interface text
+- All interface text lives in one dictionary per language and is read through
+  `translate(language, key, params)`; `params` fill `{name}`-style placeholders. A missing key
+  falls back to the English text and then to the key itself; it never throws.
+- `plural(language, count, forms)` picks a form with `Intl.PluralRules`. English uses `one` and
+  `other`; Ukrainian uses `one`, `few`, `many` and `other` (1 and 21 are `one`, 2-4 and 22-24
+  are `few`, 5-20 and 25 are `many`). A missing form falls back to `other`.
+- Tests enforce that both dictionaries have exactly the same keys, that no value is empty, and
+  that each key uses the same set of placeholders in both languages.
+- Translated: the header and navigation, the home page and level descriptions, all quiz screens
+  (start, progress, feedback, buttons, score, mistakes review), the dashboard, the logs page,
+  the profile switcher (labels, placeholders, the removal confirmation and the messages for the
+  R10 error codes) and the storage notice. Dates on the logs page use the language's locale.
+  The level names stay `Junior`, `Middle` and `Senior` in both languages.
+- Deliberately not translated: the page title and description, the stock 404 page, the export
+  file name and JSON keys, and stored data (attempts keep English topic names and question ids).
+
+### R19 Question content
+- Every question has a Ukrainian translation `{ text, options (exactly 4), explanation }`, kept
+  by question id in a separate module. `code` is never translated, and Java identifiers, class
+  names and keywords stay in English inside the Ukrainian text.
+- Topics are shown through a topic dictionary per language; a topic without an entry is shown as
+  stored.
+- `localizeQuestion(question, language)` returns the question unchanged for `en` and with the
+  translated `text`, `options` and `explanation` for `uk`. The option order and `correctIndex`
+  stay the same, so the right answer stays right. A question id without a translation falls back
+  to English.
+- `getQuestions(level)` stays English. A quiz localizes its questions to the current language
+  before shuffling (R7) when it starts or restarts. Changing the language during a running quiz
+  updates the interface text at once, but the running quiz keeps its question language until
+  Start or Try again; the mistakes review uses the language the quiz was started in.
+- Tests enforce that every English question id has a translation and no translation has an
+  unknown id; that each translation has exactly 4 non-empty options and a non-empty text and
+  explanation; that the R2 option-length rule (longest at most twice the shortest) holds for the
+  Ukrainian options; and that every topic in the bank has a Ukrainian label.
+- The Ukrainian text is written by the agent and counts as final only after the author has
+  reviewed it.
+
 ## Acceptance scenarios
 - Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
   correct 1, total 3, percent 33.
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12
+  for the same seed; given a pool of 5, it returns all 5.
+- Given any level, the correct option is the strictly longest option in 10% to 30% of its
+  questions.
+- Given preferred languages `["ru", "uk-UA"]`, `detectLanguage` returns `uk`; given
+  `["en-US", "uk"]` it returns `en`; given `[]` or `["fr"]` it returns `en`.
+- Given stored language text `xx`, `parseLanguage` returns `null` and the browser language
+  decides.
+- Given Ukrainian, `plural("uk", n, { one: "спроба", few: "спроби", many: "спроб", other: "спроби" })`
+  gives "спроба" for 1 and 21, "спроби" for 2 and 23, and "спроб" for 5, 11 and 25.
+- Given Ukrainian is selected and a quiz is started, the question text and options are
+  Ukrainian, the code block is unchanged, and choosing the option that was correct in English
+  (now translated) is still marked correct.
+- Given a profile name that is already used, the add form shows the Ukrainian message for the
+  `duplicate` code when Ukrainian is selected.
 - Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the
   first profile becomes active.
 - Given 200 logged attempts, appending one keeps 200 and drops the oldest.
@@ -225,9 +308,12 @@ All functions are pure and work on the attempt log of one profile (R12).
   `correctIndex` still points at the original correct text.
 
 ## Out of scope
-Spaced repetition, flashcards, authentication or passwords, cloud sync, Ukrainian UI.
+Spaced repetition, flashcards, authentication or passwords, cloud sync, languages other than
+English and Ukrainian, a translated page title or 404 page, right-to-left layouts.
 
 ## Spec changes
+- v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
+- v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest and shortest within 10%-30%, answer position within 15%-35%) instead of relying on authors' discipline; the lower bounds were added after the first rewrite showed the opposite tell (the correct answer was almost never the longest). Applies before the Ukrainian translation (R19) so it is translated once.
 - v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
 - v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.
 - v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.

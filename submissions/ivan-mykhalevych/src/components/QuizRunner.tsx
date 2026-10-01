@@ -8,7 +8,7 @@ import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
-import { shuffleQuestions } from "@/lib/shuffle";
+import { QUIZ_LENGTH, pickQuiz } from "@/lib/shuffle";
 import type { Level, Question } from "@/lib/types";
 
 type QuizOrStartScreen = QuizState | null;
@@ -48,14 +48,15 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     logAttempt(attempt);
   }, [state, level]);
 
-  const start = () => dispatch({ type: "start", questions: shuffleQuestions(questions, Math.random) });
+  const start = () => dispatch({ type: "start", questions: pickQuiz(questions, Math.random) });
 
   if (state === null) {
     return (
       <section className={`${card} space-y-5`}>
         <p className="text-muted">
-          {questions.length} questions, shuffled every time. You see the explanation after each
-          answer and a list of your mistakes at the end.
+          {Math.min(QUIZ_LENGTH, questions.length)} questions drawn at random from a pool of{" "}
+          {questions.length}, in a new order every time. You see the explanation after each answer
+          and a list of your mistakes at the end.
         </p>
         <button onClick={start} className={primaryBtn}>
           Start quiz

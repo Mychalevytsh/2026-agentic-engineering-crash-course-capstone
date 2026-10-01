@@ -34,7 +34,7 @@ export default function Home() {
               <span className="mt-1 flex-1 text-sm text-muted">{LEVEL_INFO[level].blurb}</span>
               <BestScore level={level} />
               <span className="mt-4 text-sm text-muted">
-                {getQuestions(level).length} questions ·{" "}
+                {getQuestions(level).length} questions in the pool ·{" "}
                 <span className="text-accent group-hover:underline">Start →</span>
               </span>
             </Link>

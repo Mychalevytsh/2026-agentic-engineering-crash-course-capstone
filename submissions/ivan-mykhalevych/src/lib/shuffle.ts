@@ -19,3 +19,9 @@ export function shuffleQuestions(questions: Question[], rng: () => number): Ques
     };
   });
 }
+
+export const QUIZ_LENGTH = 12;
+
+export function pickQuiz(pool: Question[], rng: () => number, length: number = QUIZ_LENGTH): Question[] {
+  return shuffleQuestions(pool, rng).slice(0, length);
+}
