@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
 import { buildAttempt } from "@/lib/attempts";
+import { localizeQuestion, topicLabel } from "@/lib/localize";
 import { getMistakes } from "@/lib/mistakes";
 import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
@@ -32,7 +33,7 @@ const ghostBtn =
 
 export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
-  const { t, tn } = useT();
+  const { language, t, tn } = useT();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const screen = state === null ? "start" : state.finished ? "score" : state.index;
 
@@ -50,7 +51,14 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     logAttempt(attempt);
   }, [state, level]);
 
-  const start = () => dispatch({ type: "start", questions: pickQuiz(questions, Math.random) });
+  const start = () =>
+    dispatch({
+      type: "start",
+      questions: pickQuiz(
+        questions.map((question) => localizeQuestion(question, language)),
+        Math.random,
+      ),
+    });
 
   if (state === null) {
     return (
@@ -128,7 +136,7 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
       <div>
         <div className="flex justify-between text-sm text-muted">
           <span>{t("quiz.progress", { current: state.index + 1, total: state.questions.length })}</span>
-          <span className="font-mono">{question.topic}</span>
+          <span className="font-mono">{topicLabel(language, question.topic)}</span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
           <div

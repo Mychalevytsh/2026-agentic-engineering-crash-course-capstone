@@ -3,6 +3,7 @@
 import Link from "next/link";
 import NoProfileNotice from "./NoProfileNotice";
 import { useState } from "react";
+import { topicLabel } from "@/lib/localize";
 import { summarizeProgress } from "@/lib/progress";
 import { LEVELS } from "@/lib/types";
 import { useT } from "@/lib/useLanguage";
@@ -23,7 +24,7 @@ export default function DashboardView() {
   const profile = useActiveProfile();
   const attempts = useAttempts(profile?.id ?? null);
   const bestScores = useBestScores();
-  const { t, tn } = useT();
+  const { language, t, tn } = useT();
   const [now] = useState(() => Date.now());
 
   if (!profile) return <NoProfileNotice />;
@@ -73,7 +74,7 @@ export default function DashboardView() {
           {summary.mastery.map(({ topic, correct, total, percent }) => (
             <li key={topic}>
               <div className="flex justify-between text-sm">
-                <span className="font-semibold">{topic}</span>
+                <span className="font-semibold">{topicLabel(language, topic)}</span>
                 <span className="text-muted">{t("dashboard.masteryRow", { correct, total, percent })}</span>
               </div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-line">
@@ -95,7 +96,7 @@ export default function DashboardView() {
           <ol className="list-decimal space-y-1 pl-5">
             {summary.weakest.map(({ topic, percent }) => (
               <li key={topic}>
-                {topic} <span className="text-muted">({percent}%)</span>
+                {topicLabel(language, topic)} <span className="text-muted">({percent}%)</span>
               </li>
             ))}
           </ol>
