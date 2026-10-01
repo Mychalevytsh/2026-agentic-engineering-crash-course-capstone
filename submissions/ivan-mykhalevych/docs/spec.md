@@ -36,7 +36,8 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
 questions chosen at random from the pool, or the whole pool when it is smaller, with the option
 order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
-deterministic.
+deterministic. A running quiz lives only in memory: reloading the page ends it, and nothing is
+saved until it is finished (R12).
 
 ### R4 Scoring
 `scoreQuiz(questions, answers)` returns `{ correct, total, percent }`.
@@ -295,7 +296,8 @@ returned or logged in clear text.
   new user plus a session token.
 - `login({ email, password })` creates a new session. A wrong password and an unknown email give
   the same `invalid-credentials` (a dummy hash is verified for an unknown email so the timing is
-  similar). After 5 failed logins for an email within 15 minutes the account is locked for the
+  similar). A malformed email gets the same `invalid-credentials` after the dummy hash and is not
+  counted by the throttle, because no account can have such an email. After 5 failed logins for an email within 15 minutes the account is locked for the
   rest of that window and returns `too-many-attempts`, even for the correct password; a
   successful login resets the counter.
 - `changePassword(userId, current, next, currentToken)` needs the current password
@@ -314,6 +316,9 @@ returned or logged in clear text.
   (R16), attempts are added, de-duplicated by `at`, sorted by `at` and capped to the newest 200.
   Invalid entries are dropped and at most 200 attempts are read.
 - Every call is scoped by the user id taken from the session, never from the request body.
+- Known limits: `recordAttempt` checks the shape of an attempt (R12), not that `percent` agrees with
+  `correct` and `total`, so an account can only forge its own scores. Users and sessions are not
+  capped and registration has no rate limit (no per-IP limiting, see "Out of scope").
 
 ### R26 HTTP API
 JSON under `/api`, all dynamic:
@@ -352,6 +357,9 @@ JSON under `/api`, all dynamic:
 - After signing in or registering in a browser that has guest progress, the account page offers
   "Import progress from this browser" for the active guest profile. Importing copies the data
   (R25) and does not delete the local data.
+- If saving a finished quiz to the server fails, or the session has not finished loading, the
+  result is saved to the active guest profile instead (R12, R16), so it is not lost. It then
+  belongs to that profile and is not in the account until imported.
 
 ### R28 Security properties
 - No SQL is assembled from user input.
@@ -434,6 +442,7 @@ and multi-server deployment (SQLite is a single-node database).
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
 - v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
+- v0.21 (as-built gaps, from `docs/spec-as-built.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
 - v0.20 (review and QA fixes): the body limit is enforced while reading, handler errors answer 500 `internal`, expired failure rows and sessions are purged, an attempt holds at most 100 results, and wrong current passwords show their own message.
 - v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.
 - v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).

@@ -135,5 +135,4 @@ Tables: `users(id, email unique, display_name, password_hash, created_at)`,
 | 9 | Display name on the account page is the only profile data; the guest profile name and the account display name are unrelated | R27 silent | Fine |
 | 10 | `/api` answers 404/405/400 `body-invalid`/500 `internal` | Added to the spec in v0.19-v0.20 | In sync |
 
-No requirement of R1-R28 was found to be contradicted by the code. Items 1, 2, 4, 5 and 8 are the
-candidates to add to `docs/spec.md` as explicit statements or known limits.
+No requirement of R1-R28 was found to be contradicted by the code. Items 1, 2, 4, 5 and 8 were added to `docs/spec.md` in v0.21.
