@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
 import { buildAttempt } from "@/lib/attempts";
+import { localizeQuestion, topicLabel } from "@/lib/localize";
 import { getMistakes } from "@/lib/mistakes";
 import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
@@ -10,6 +11,7 @@ import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
 import { QUIZ_LENGTH, pickQuiz } from "@/lib/shuffle";
 import type { Level, Question } from "@/lib/types";
+import { useT } from "@/lib/useLanguage";
 
 type QuizOrStartScreen = QuizState | null;
 type Action =
@@ -31,6 +33,7 @@ const ghostBtn =
 
 export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
+  const { language, t, tn } = useT();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const screen = state === null ? "start" : state.finished ? "score" : state.index;
 
@@ -48,18 +51,23 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     logAttempt(attempt);
   }, [state, level]);
 
-  const start = () => dispatch({ type: "start", questions: pickQuiz(questions, Math.random) });
+  const start = () =>
+    dispatch({
+      type: "start",
+      questions: pickQuiz(
+        questions.map((question) => localizeQuestion(question, language)),
+        Math.random,
+      ),
+    });
 
   if (state === null) {
     return (
       <section className={`${card} space-y-5`}>
         <p className="text-muted">
-          {Math.min(QUIZ_LENGTH, questions.length)} questions drawn at random from a pool of{" "}
-          {questions.length}, in a new order every time. You see the explanation after each answer
-          and a list of your mistakes at the end.
+          {tn("quiz.intro", Math.min(QUIZ_LENGTH, questions.length), { pool: questions.length })}
         </p>
         <button onClick={start} className={primaryBtn}>
-          Start quiz
+          {t("quiz.start")}
         </button>
       </section>
     );
@@ -72,26 +80,24 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
       <div className="space-y-6">
         <section className={`${card} space-y-5`} aria-live="polite">
           <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold">
-            Your score
+            {t("quiz.scoreTitle")}
           </h2>
           <p className="font-mono text-5xl font-bold text-accent">{score.percent}%</p>
-          <p className="text-muted">
-            {score.correct} of {score.total} correct
-          </p>
+          <p className="text-muted">{t("quiz.scoreSummary", { correct: score.correct, total: score.total })}</p>
           <div className="flex flex-wrap gap-3">
             <button onClick={start} className={primaryBtn}>
-              Try again
+              {t("quiz.tryAgain")}
             </button>
             <Link href="/" className={ghostBtn}>
-              Choose another level
+              {t("quiz.chooseLevel")}
             </Link>
           </div>
         </section>
 
         <section className={`${card} space-y-4`}>
-          <h2 className="text-xl font-semibold">Review your mistakes</h2>
+          <h2 className="text-xl font-semibold">{t("quiz.reviewTitle")}</h2>
           {mistakes.length === 0 ? (
-            <p className="text-good">No mistakes - well done!</p>
+            <p className="text-good">{t("quiz.noMistakes")}</p>
           ) : (
             <ul className="space-y-5">
               {mistakes.map(({ question, chosen }) => (
@@ -103,9 +109,13 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
                     </pre>
                   )}
                   <p className="text-bad">
-                    Your answer: {chosen === null ? "Skipped" : question.options[chosen]}
+                    {t("quiz.yourAnswer", {
+                      answer: chosen === null ? t("quiz.skipped") : question.options[chosen],
+                    })}
                   </p>
-                  <p className="text-good">Correct: {question.options[question.correctIndex]}</p>
+                  <p className="text-good">
+                    {t("quiz.correctAnswer", { answer: question.options[question.correctIndex] })}
+                  </p>
                   <p className="text-sm text-muted">{question.explanation}</p>
                 </li>
               ))}
@@ -125,10 +135,8 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     <section className={`${card} space-y-5`}>
       <div>
         <div className="flex justify-between text-sm text-muted">
-          <span>
-            Question {state.index + 1} of {state.questions.length}
-          </span>
-          <span className="font-mono">{question.topic}</span>
+          <span>{t("quiz.progress", { current: state.index + 1, total: state.questions.length })}</span>
+          <span className="font-mono">{topicLabel(language, question.topic)}</span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
           <div
@@ -180,11 +188,11 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
               state.selected === question.correctIndex ? "text-good" : "text-bad"
             }`}
           >
-            {state.selected === question.correctIndex ? "Correct!" : "Not quite."}
+            {state.selected === question.correctIndex ? t("quiz.correct") : t("quiz.wrong")}
           </p>
           <p className="text-muted">{question.explanation}</p>
           <button autoFocus onClick={() => dispatch({ type: "next" })} className={primaryBtn}>
-            {isLast ? "See score" : "Next →"}
+            {isLast ? t("quiz.seeScore") : t("quiz.next")}
           </button>
         </div>
       )}

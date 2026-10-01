@@ -104,3 +104,16 @@ Covered the gaps the independent runs had listed as "not tested":
 
 Still not tested: screen readers, other browsers (only the built-in Chromium pane), and multiple
 tabs open at once. These checks were done by the author agent, not by an independent checker.
+
+## Question pool and Ukrainian (2026-10-01, commits `ad68e10` to `e264fca`)
+
+| Check | Who | Result | Action |
+|---|---|---|---|
+| Java fact check of 120 questions | independent reviewer, about 83k tokens | no wrong answers; ambiguous j4, s23, m35; about 12 senior questions at middle level; s24 duplicated m3/s11 | stems fixed, 12 senior questions replaced (`b72e0b8`) |
+| Tell statistics | author, generator and Vitest | first draft: correct answer strictly longest in 58% (middle); first rewrite overshot to 0% (inverse tell) | bounds 10%-30% both ways in tests; 20-25% longest, 12-15% shortest per level |
+| Ukrainian fidelity and language | independent reviewer, about 113k tokens | all 120 translations faithful; Thread vs Stream ambiguity (s34, m4 high), grammar (j27), "перевірювані", calques, register | all fixed in `e264fca` |
+| Black-box QA, built-in browser | independent agent, about 120k tokens, 36 quizzes | detection, switching, pool and draw, content, mid-quiz switch, profiles, dashboard and logs plurals, tells (10-26% longest, 10-19% shortest), regression: all PASS | one medium bug: a 24-character name overflowed the empty dashboard and logs at 375 px; fixed and verified (spec v0.17) |
+
+Not tested: screen readers, other browsers, "No mistakes" in Ukrainian (a perfect score is not
+reachable with shuffled options), the blocked-storage notice in Ukrainian. The author agent also
+verified 24 sampled Ukrainian questions by reading the marked correct answers.

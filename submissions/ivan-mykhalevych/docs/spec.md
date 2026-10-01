@@ -123,7 +123,8 @@ A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no
   dashboard and logs pages say, in the selected language (R18), that the browser is blocking
   local storage so progress cannot be saved, instead of showing the loading text forever.
 - The header never makes the page scroll horizontally, even on a 375 px wide screen with a
-  24-character profile name; long names are cut off inside the select.
+  24-character profile name; long names are cut off inside the select. The same holds for
+  every page that shows the profile name (dashboard and logs): a long name wraps inside its box.
 - If the stored profile text exists but cannot be parsed, it is copied to
   `java-trainer-profiles-backup` before a new "Default" profile replaces it, so no data is
   silently overwritten.
@@ -250,6 +251,9 @@ All functions are pure and work on the attempt log of one profile (R12).
   unknown id; that each translation has exactly 4 non-empty options and a non-empty text and
   explanation; that the R2 option-length rule (longest at most twice the shortest) holds for the
   Ukrainian options; and that every topic in the bank has a Ukrainian label.
+- The no-tell rules of R2 hold for the Ukrainian options too: per level, the correct option is
+  the strictly longest in 10% to 30% of the questions and the strictly shortest in 10% to 30%,
+  so the length of an answer gives nothing away in either language.
 - The Ukrainian text is written by the agent and counts as final only after the author has
   reviewed it.
 
@@ -313,6 +317,8 @@ English and Ukrainian, a translated page title or 404 page, right-to-left layout
 
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
+- v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).
+- v0.16 (Ukrainian questions): R19 also applies the length no-tell bounds of R2 to the Ukrainian options.
 - v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest and shortest within 10%-30%, answer position within 15%-35%) instead of relying on authors' discipline; the lower bounds were added after the first rewrite showed the opposite tell (the correct answer was almost never the longest). Applies before the Ukrainian translation (R19) so it is translated once.
 - v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
 - v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.

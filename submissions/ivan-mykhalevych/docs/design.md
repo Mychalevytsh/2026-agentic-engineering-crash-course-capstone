@@ -41,6 +41,11 @@ Generated inline SVG (no external images, no licensing issues): a navy gradient,
 soft amber glows, faint Java-flavoured code fragments and a coffee-steam curve. It is
 fixed behind all content, `aria-hidden`, and never carries information.
 
+## Language switcher
+A select in the header, left of the profile switcher, with the options "English" and
+"Українська". Ukrainian text is about 15-25% longer than English, so every layout must wrap
+instead of overflowing; level names (Junior, Middle, Senior) stay in Latin letters.
+
 ## Accessibility
 - Body text contrast at least 4.5:1 against its surface in both themes.
 - Correct/incorrect states are also conveyed by text ("Correct!" / "Not quite."), not

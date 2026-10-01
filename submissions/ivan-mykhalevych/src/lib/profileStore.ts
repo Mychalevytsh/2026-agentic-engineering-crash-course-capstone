@@ -25,7 +25,7 @@ export function subscribeToStore(onChange: () => void) {
   };
 }
 
-function notifyChange() {
+export function notifyChange() {
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 

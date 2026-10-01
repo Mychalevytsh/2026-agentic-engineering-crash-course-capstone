@@ -52,9 +52,9 @@ The work is done only when every box below is ticked **with a link to its eviden
 Status as of the last update of this file.
 
 ### A. The project
-- [x] A small project exists and works: Java interview trainer (3 levels, 36 questions
-      including code snippets, shuffled quiz, mistakes review, best score per level).
-      Evidence: `npm run check` 41/41 tests, `next build` OK, browser run-throughs, and an
+- [x] A small project exists and works: Java interview trainer (3 levels, a 120-question pool
+      with code snippets, 12-question random quizzes, English and Ukrainian, profiles,
+      dashboard, logs). Evidence: `npm run check` 168/168 tests, `next build` OK, browser run-throughs, and an
       independent QA run (10/10 checks, `docs/qa-plan.md`), latest fix `19945a7`.
 - [ ] Light theme and phone-width layout checked (nice to have).
 
@@ -158,3 +158,15 @@ when committed; they were exercised through the UI in slices 2, 3 and 5. The two
 categories (header overflow, removal order) were verified by the author agent, not re-run by the
 independent checker. Slice 0 (the two earlier QA findings) was already done on the PR branch as
 `b52b50e` and `19945a7`, so it was not repeated.
+
+## Question pool and Ukrainian (1 October)
+
+Spec-first slices with red before green: question pool and no-tell rules `ec8a03b` -> `ad68e10`
+(then fact-check fixes `b72e0b8`); language core and Ukrainian interface `a47ee3b` ->
+`b89c982`; Ukrainian questions and topic labels `6f4bf5e` -> `4489857`; review and QA fixes
+`e264fca`. Checkers: a fact-check reviewer (about 83k tokens: no wrong answers, 3 ambiguous
+questions, a dozen senior questions at middle level, all fixed), a Ukrainian language reviewer
+(about 113k tokens: no fidelity errors, wording issues fixed) and an independent QA run
+(about 120k tokens, 36 quizzes: 9/9 areas passed, one overflow bug fixed). Details in
+`docs/qa-plan.md`. Open points: the Ukrainian text has had an agent review only (the author
+should read it), and the generator scripts used to produce the bank are not in the repository.
