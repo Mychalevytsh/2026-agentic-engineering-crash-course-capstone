@@ -1,6 +1,8 @@
 # Plan: close the remaining as-built gaps (spec-driven)
 
-Source: the differences table in `docs/spec-as-built.md` and the limits left open in spec v0.22.
+Status: done, kept as history. The finished behaviour is described in `docs/reference.md`.
+
+Source: the differences table in the reverse-engineered description (now merged into `docs/reference.md`) and the limits left open in spec v0.22.
 Method for every slice: spec text first (all four slices are written into `docs/spec.md` v0.23
 before any code), then a failing-test commit (`RED_COMMIT=1`), then the implementation commit
 that passes `npm run check`, then a browser check for the slices with UI. KISS: no new
@@ -24,7 +26,7 @@ P1, P2, P4 logic: red `test(red): guest me answer, registration limit, quiz pers
 
 ## Order of work and checks
 1. Spec v0.23 for all four slices, commit.
-2. For each slice: red commit, green commit; run `npm run check`; update `docs/spec-as-built.md`.
+2. For each slice: red commit, green commit; run `npm run check`; update the reverse-engineered description (now merged into `docs/reference.md`).
 3. Browser check in the built-in pane: guest console without 401 (P1), registration limit message
    in both languages (P2), the saved-on-device notice with the server stopped (P3), reload
    mid-quiz in both themes (P4).

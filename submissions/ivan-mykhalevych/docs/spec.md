@@ -1,5 +1,9 @@
 # Spec: Java Interview Prep (v0.1)
 
+> **History, not authority.** The code is the single source of truth and `docs/reference.md`
+> describes it. This spec records the requirements as they were written before and during the work,
+> with the reasons for each change. Where it differs from the code or `docs/reference.md`, they win.
+
 Status: written BEFORE the new application code. Changes made after coding starts are
 recorded in "Spec changes" at the bottom, with the reason.
 
@@ -458,7 +462,7 @@ and multi-server deployment (SQLite is a single-node database).
 - v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
 - v0.23 (plan `docs/plan-gap-fixes.md`): R3 keeps a running quiz in `sessionStorage`, R24 and R26 add a global registration limit (429 `too-many-registrations`), R26 makes `GET /api/auth/me` answer 200 `{user: null}` for guests, R27 tells the user when a result was saved on the device only.
 - v0.22 (gap fixes): an attempt must agree with its results (R12, applies to guest and account data) and a user keeps at most 10 sessions (R23); the "forged scores" and "unbounded sessions" limits of v0.21 shrink accordingly.
-- v0.21 (as-built gaps, from `docs/spec-as-built.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
+- v0.21 (as-built gaps, from the reverse-engineered description, now merged into `docs/reference.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
 - v0.20 (review and QA fixes): the body limit is enforced while reading, handler errors answer 500 `internal`, expired failure rows and sessions are purged, an attempt holds at most 100 results, and wrong current passwords show their own message.
 - v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.
 - v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).
