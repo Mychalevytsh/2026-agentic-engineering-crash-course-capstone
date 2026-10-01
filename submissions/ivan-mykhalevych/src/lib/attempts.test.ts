@@ -104,7 +104,27 @@ describe("appendAttempt (spec R12)", () => {
 describe("parseAttempts result cap (spec R12)", () => {
   it("drops attempts with more than 100 results", () => {
     const result = { id: "a", topic: "T", correct: true };
-    const attempt = (count: number) => ({ at: count, level: "junior", total: 1, correct: 1, percent: 100, results: Array(count).fill(result) });
+    const attempt = (count: number) => ({ at: count, level: "junior", total: count, correct: count, percent: 100, results: Array(count).fill(result) });
     expect(parseAttempts(JSON.stringify([attempt(100), attempt(101)])).map((a) => a.at)).toEqual([100]);
+  });
+});
+
+describe("parseAttempts consistency (spec R12)", () => {
+  const results = (correct: number, total: number) =>
+    Array.from({ length: total }, (_, i) => ({ id: `q${i}`, topic: "T", correct: i < correct }));
+  const attempt = (overrides: object) => ({ at: 1, level: "junior", total: 4, correct: 3, percent: 75, results: results(3, 4), ...overrides });
+  const kept = (value: object) => parseAttempts(JSON.stringify([value])).length;
+
+  it("keeps an attempt whose numbers agree with its results", () => {
+    expect(kept(attempt({}))).toBe(1);
+    expect(kept(attempt({ total: 3, correct: 1, percent: 33, results: results(1, 3) }))).toBe(1);
+    expect(kept(attempt({ total: 0, correct: 0, percent: 0, results: [] }))).toBe(1);
+  });
+
+  it("drops an attempt whose total, correct or percent disagree with the results", () => {
+    expect(kept(attempt({ total: 5 }))).toBe(0);
+    expect(kept(attempt({ correct: 4, percent: 100 }))).toBe(0);
+    expect(kept(attempt({ percent: 100 }))).toBe(0);
+    expect(kept(attempt({ percent: 74 }))).toBe(0);
   });
 });

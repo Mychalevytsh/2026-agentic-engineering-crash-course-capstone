@@ -5,7 +5,8 @@ senior), in English or Ukrainian. Each level has a pool of 40 multiple-choice qu
 a quiz draws 12 of them at random; local profiles keep best scores, an attempt log and a
 progress dashboard in the browser.
 
-- Spec: `docs/spec.md` (written before the code)
+- Spec: `docs/spec.md` (written before the code); `docs/spec-as-built.md` is the reverse-engineered
+  description of the code and the drift check against it
 - Agent rules: `AGENTS.md`
 - Check everything: `npm run check`
 - Run: `npm run dev`, then open http://localhost:3000

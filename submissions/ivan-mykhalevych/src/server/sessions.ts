@@ -5,6 +5,7 @@ import type { User } from "./users";
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 const TOKEN_BYTES = 32;
+export const MAX_SESSIONS_PER_USER = 10;
 
 interface SessionRow {
   expires_at: number;
@@ -25,6 +26,11 @@ export function createSession(db: Db, userId: number, now: number): string {
     userId,
     now + SESSION_TTL_MS,
   );
+  db.prepare(
+    `DELETE FROM sessions WHERE user_id = ? AND token_hash NOT IN (
+       SELECT token_hash FROM sessions WHERE user_id = ? ORDER BY expires_at DESC, rowid DESC LIMIT ?
+     )`,
+  ).run(userId, userId, MAX_SESSIONS_PER_USER);
   return token;
 }
 

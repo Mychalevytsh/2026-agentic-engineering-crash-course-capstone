@@ -11,6 +11,7 @@
   --on-accent: #1a1206;
   --good: #22c55e;
   --bad: #f87171;
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: light) {
@@ -25,6 +26,7 @@
     --on-accent: #ffffff;
     --good: #15803d;
     --bad: #b91c1c;
+    color-scheme: light;
   }
 }
 
@@ -47,6 +49,16 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+select option {
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+select option:checked {
+  background-color: var(--accent);
+  color: var(--on-accent);
 }
 
 h1,

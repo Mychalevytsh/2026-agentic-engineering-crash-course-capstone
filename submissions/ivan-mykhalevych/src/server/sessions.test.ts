@@ -73,3 +73,21 @@ describe("session housekeeping (spec R23)", () => {
     expect(storedHashes()).toHaveLength(1);
   });
 });
+
+describe("session cap (spec R23)", () => {
+  it("keeps only the newest 10 sessions of a user", () => {
+    const tokens = Array.from({ length: 11 }, () => createSession(db, userId, NOW));
+    expect(storedHashes()).toHaveLength(10);
+    expect(getSessionUser(db, tokens[0], NOW)).toBeNull();
+    expect(getSessionUser(db, tokens[10], NOW)).not.toBeNull();
+    expect(getSessionUser(db, tokens[1], NOW)).not.toBeNull();
+  });
+
+  it("does not touch the sessions of other users", () => {
+    const other = createUser(db, { email: "bob@example.com", displayName: "Bob", passwordHash: "h" }, NOW);
+    if (other === "email-taken") throw new Error("unexpected");
+    const bobToken = createSession(db, other.id, NOW);
+    for (let i = 0; i < 12; i++) createSession(db, userId, NOW);
+    expect(getSessionUser(db, bobToken, NOW)).not.toBeNull();
+  });
+});

@@ -49,13 +49,10 @@ function signUp(email = "ann@example.com", displayName = "Ann"): string {
 const attempt = (at: number, percent = 50) => ({
   at,
   level: "junior",
-  total: 2,
-  correct: 1,
+  total: 10,
+  correct: percent / 10,
   percent,
-  results: [
-    { id: "a", topic: "Basics", correct: true },
-    { id: "b", topic: "Basics", correct: false },
-  ],
+  results: Array.from({ length: 10 }, (_, i) => ({ id: `q${i}`, topic: "Basics", correct: i < percent / 10 })),
 });
 
 beforeEach(() => {
