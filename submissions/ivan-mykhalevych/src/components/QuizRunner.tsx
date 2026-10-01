@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useReducer, useRef } from "react";
+import { useAccount } from "@/lib/account/AccountProvider";
 import { buildAttempt } from "@/lib/attempts";
 import { localizeQuestion, topicLabel } from "@/lib/localize";
 import { getMistakes } from "@/lib/mistakes";
-import { logAttempt, saveBestScore } from "@/lib/profileStore";
 import { initQuiz, nextQuestion, selectOption } from "@/lib/quizState";
 import type { QuizState } from "@/lib/quizState";
 import { scoreQuiz } from "@/lib/scoring";
@@ -34,6 +34,7 @@ const ghostBtn =
 export default function QuizRunner({ level, questions }: { level: Level; questions: Question[] }) {
   const [state, dispatch] = useReducer(reducer, null);
   const { language, t, tn } = useT();
+  const { record } = useAccount();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const screen = state === null ? "start" : state.finished ? "score" : state.index;
 
@@ -47,9 +48,8 @@ export default function QuizRunner({ level, questions }: { level: Level; questio
     if (!state?.finished || loggedQuiz.current === state) return;
     loggedQuiz.current = state;
     const attempt = buildAttempt(level, state.questions, state.answers, Date.now());
-    saveBestScore(level, attempt.percent);
-    logAttempt(attempt);
-  }, [state, level]);
+    void record(attempt);
+  }, [state, level, record]);
 
   const start = () =>
     dispatch({
