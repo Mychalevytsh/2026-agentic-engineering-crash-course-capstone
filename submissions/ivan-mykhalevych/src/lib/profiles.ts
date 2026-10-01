@@ -11,8 +11,9 @@ export interface ProfilesState {
   activeId: string | null;
 }
 
-export type NameResult = { ok: true; name: string } | { ok: false; error: string };
-export type ProfileResult = { ok: true; state: ProfilesState } | { ok: false; error: string };
+export type ProfileError = "empty" | "too-long" | "duplicate" | "too-many";
+export type NameResult = { ok: true; name: string } | { ok: false; error: ProfileError };
+export type ProfileResult = { ok: true; state: ProfilesState } | { ok: false; error: ProfileError };
 
 export const MAX_PROFILES = 10;
 export const MAX_NAME_LENGTH = 24;
@@ -22,13 +23,11 @@ const EMPTY_STATE: ProfilesState = { profiles: [], activeId: null };
 
 export function validateProfileName(name: string, existing: Profile[]): NameResult {
   const trimmed = name.trim();
-  if (trimmed === "") return { ok: false, error: "Enter a name." };
-  if (trimmed.length > MAX_NAME_LENGTH) {
-    return { ok: false, error: `Use at most ${MAX_NAME_LENGTH} characters.` };
-  }
+  if (trimmed === "") return { ok: false, error: "empty" };
+  if (trimmed.length > MAX_NAME_LENGTH) return { ok: false, error: "too-long" };
   const lowered = trimmed.toLowerCase();
   if (existing.some((profile) => profile.name.toLowerCase() === lowered)) {
-    return { ok: false, error: "That name is already used." };
+    return { ok: false, error: "duplicate" };
   }
   return { ok: true, name: trimmed };
 }
@@ -65,9 +64,7 @@ export function parseProfiles(raw: string | null): ProfilesState {
 }
 
 export function addProfile(state: ProfilesState, name: string, makeId: () => string): ProfileResult {
-  if (state.profiles.length >= MAX_PROFILES) {
-    return { ok: false, error: `You can have at most ${MAX_PROFILES} profiles.` };
-  }
+  if (state.profiles.length >= MAX_PROFILES) return { ok: false, error: "too-many" };
   const checked = validateProfileName(name, state.profiles);
   if (!checked.ok) return checked;
   const profile = { id: makeId(), name: checked.name };

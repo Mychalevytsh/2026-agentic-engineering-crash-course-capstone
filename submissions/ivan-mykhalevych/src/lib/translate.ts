@@ -1,6 +1,9 @@
+import { DEFAULT_LANGUAGE } from "./language";
 import type { Language } from "./language";
+import { EN } from "./messages.en";
+import { UK } from "./messages.uk";
 
-export type MessageKey = string;
+export type { MessageKey } from "./messages.en";
 export type Dictionaries = Record<Language, Record<string, string>>;
 export type Params = Record<string, string | number>;
 export interface PluralForms {
@@ -10,26 +13,37 @@ export interface PluralForms {
   other: string;
 }
 
-export const DICTIONARIES: Dictionaries = { en: {}, uk: {} };
+export const DICTIONARIES: Dictionaries = { en: EN, uk: UK };
 
-export function translate(
-  _language: Language,
-  _key: MessageKey,
-  _params?: Params,
-  _dictionaries?: Dictionaries,
-): string {
-  throw new Error("not implemented");
+function fill(template: string, params: Params): string {
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    name in params ? String(params[name]) : placeholder,
+  );
 }
 
-export function plural(_language: Language, _count: number, _forms: PluralForms): string {
-  throw new Error("not implemented");
+export function translate(
+  language: Language,
+  key: string,
+  params: Params = {},
+  dictionaries: Dictionaries = DICTIONARIES,
+): string {
+  const text = dictionaries[language][key] ?? dictionaries[DEFAULT_LANGUAGE][key] ?? key;
+  return fill(text, params);
+}
+
+export function plural(language: Language, count: number, forms: PluralForms): string {
+  const category = new Intl.PluralRules(language).select(count) as keyof PluralForms;
+  return forms[category] ?? forms.other;
 }
 
 export function translatePlural(
-  _language: Language,
-  _baseKey: string,
-  _count: number,
-  _params?: Params,
+  language: Language,
+  baseKey: string,
+  count: number,
+  params: Params = {},
 ): string {
-  throw new Error("not implemented");
+  const category = new Intl.PluralRules(language).select(count);
+  const key = `${baseKey}.${category}`;
+  const chosenKey = key in DICTIONARIES[language] ? key : `${baseKey}.other`;
+  return translate(language, chosenKey, { count, ...params });
 }
