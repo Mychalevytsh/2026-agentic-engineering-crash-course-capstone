@@ -40,6 +40,14 @@ describe("quizStore (spec R3)", () => {
     expect(loadRunningQuiz("junior")).toBeNull();
   });
 
+  it("removes a saved value that is not a valid quiz of that level", () => {
+    const storage = fakeSessionStorage();
+    vi.stubGlobal("sessionStorage", storage);
+    storage.setItem("java-trainer-quiz:junior", "{broken");
+    expect(loadRunningQuiz("junior")).toBeNull();
+    expect(storage.getItem("java-trainer-quiz:junior")).toBeNull();
+  });
+
   it("ignores blocked storage", () => {
     const blocked = new Proxy({}, { get: () => () => { throw new Error("blocked"); } });
     vi.stubGlobal("sessionStorage", blocked);
