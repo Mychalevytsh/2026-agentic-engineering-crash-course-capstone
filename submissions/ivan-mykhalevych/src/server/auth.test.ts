@@ -16,7 +16,6 @@ import { findUserByEmail, findUserById } from "./users";
 
 let db: Db;
 const NOW = 1_700_000_000_000;
-const MINUTE = 60 * 1000;
 const PASSWORD = "correct horse battery";
 const OTHER_PASSWORD = "tr0ub4dor&3-staple";
 
