@@ -20,7 +20,7 @@ export default function LogsView() {
     return (
       <section className={`${card} space-y-4`}>
         <h2 className="text-xl font-semibold">{t("empty.title")}</h2>
-        <p className="text-muted">{t("logs.emptyText", { name: profile.name })}</p>
+        <p className="text-muted break-words">{t("logs.emptyText", { name: profile.name })}</p>
         <Link
           href="/"
           className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent"
@@ -49,7 +49,7 @@ export default function LogsView() {
   return (
     <section className={`${card} space-y-4`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">{tn("logs.attempts", attempts.length, { name: profile.name })}</h2>
+        <h2 className="min-w-0 text-xl font-semibold break-words">{tn("logs.attempts", attempts.length, { name: profile.name })}</h2>
         <button
           onClick={exportJson}
           className="rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent transition-opacity hover:opacity-90"

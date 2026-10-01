@@ -13,9 +13,9 @@ const card = "rounded-2xl border border-line bg-surface p-6 backdrop-blur";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className={card}>
+    <div className={`${card} min-w-0`}>
       <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 font-mono text-3xl font-bold text-accent">{value}</p>
+      <p className="mt-1 font-mono text-3xl font-bold text-accent [overflow-wrap:anywhere]">{value}</p>
     </div>
   );
 }
@@ -35,7 +35,7 @@ export default function DashboardView() {
     return (
       <section className={`${card} space-y-4`}>
         <h2 className="text-xl font-semibold">{t("empty.title")}</h2>
-        <p className="text-muted">{t("dashboard.emptyText", { name: profile.name })}</p>
+        <p className="text-muted break-words">{t("dashboard.emptyText", { name: profile.name })}</p>
         <Link
           href="/"
           className="inline-block rounded-xl bg-gradient-to-r from-accent to-accent-2 px-5 py-2.5 font-semibold text-on-accent"
