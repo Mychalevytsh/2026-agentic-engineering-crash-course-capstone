@@ -224,7 +224,7 @@ describe("request checks (spec R26)", () => {
   it("requires JSON bodies of at most 100 kB", () => {
     expect(call("POST", "/api/auth/login", undefined, { raw: "email=a", contentType: "text/plain" })).toEqual({ status: 415, body: { error: "json-required" } });
     expect(call("POST", "/api/auth/login", undefined, { raw: "{}", contentType: null }).status).toBe(415);
-    expect(call("POST", "/api/auth/login", undefined, { raw: "{}", contentType: "application/json; charset=utf-8" }).status).toBe(400);
+    expect(call("POST", "/api/auth/login", undefined, { raw: "{}", contentType: "application/json; charset=utf-8" }).status).toBe(401);
     expect(call("POST", "/api/auth/login", undefined, { raw: " ".repeat(100_001) })).toEqual({ status: 413, body: { error: "body-too-large" } });
   });
 
@@ -232,6 +232,10 @@ describe("request checks (spec R26)", () => {
     for (const raw of ["{broken", "[1,2]", "null", "42", '"text"']) {
       expect(call("POST", "/api/auth/login", undefined, { raw })).toEqual({ status: 400, body: { error: "body-invalid" } });
     }
+  });
+
+  it("does not mistake a body shaped like a response for one", () => {
+    expect(call("POST", "/api/auth/login", { status: 200, body: { ok: true } })).toMatchObject({ status: 401, body: { error: "invalid-credentials" } });
   });
 
   it("treats an empty body as an empty object without a content type", () => {
