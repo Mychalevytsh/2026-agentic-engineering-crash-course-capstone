@@ -104,7 +104,7 @@ describe("appendAttempt (spec R12)", () => {
 describe("parseAttempts result cap (spec R12)", () => {
   it("drops attempts with more than 100 results", () => {
     const result = { id: "a", topic: "T", correct: true };
-    const attempt = (count: number) => ({ at: count, level: "junior", total: 1, correct: 1, percent: 100, results: Array(count).fill(result) });
+    const attempt = (count: number) => ({ at: count, level: "junior", total: count, correct: count, percent: 100, results: Array(count).fill(result) });
     expect(parseAttempts(JSON.stringify([attempt(100), attempt(101)])).map((a) => a.at)).toEqual([100]);
   });
 });

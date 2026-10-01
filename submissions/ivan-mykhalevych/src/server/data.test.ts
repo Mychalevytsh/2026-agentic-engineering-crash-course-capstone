@@ -15,17 +15,17 @@ function makeUser(email: string): number {
   return user.id;
 }
 
-const attempt = (at: number, level: Attempt["level"] = "junior", percent = 50, topic = "Basics"): Attempt => ({
-  at,
-  level,
-  total: 2,
-  correct: percent === 100 ? 2 : 1,
-  percent,
-  results: [
-    { id: "a", topic, correct: true },
-    { id: "b", topic, correct: percent === 100 },
-  ],
-});
+const attempt = (at: number, level: Attempt["level"] = "junior", percent = 50, topic = "Basics"): Attempt => {
+  const correct = percent / 10;
+  return {
+    at,
+    level,
+    total: 10,
+    correct,
+    percent,
+    results: Array.from({ length: 10 }, (_, i) => ({ id: `q${i}`, topic, correct: i < correct })),
+  };
+};
 
 beforeEach(() => {
   db = openDatabase(":memory:");
@@ -59,7 +59,8 @@ describe("getData and recordAttempt (spec R25)", () => {
       "text",
       { ...attempt(1), level: "expert" },
       { ...attempt(1), percent: 150 },
-      { ...attempt(1), correct: 5 },
+      { ...attempt(1), correct: 7 },
+      { ...attempt(1), percent: 100 },
       { ...attempt(1), at: "now" },
       { ...attempt(1), results: [{ id: 1 }] },
     ];
@@ -93,7 +94,7 @@ describe("importData (spec R25)", () => {
   it("merges attempts, de-duplicates by time, sorts and drops invalid entries", () => {
     recordAttempt(db, alice, attempt(1));
     recordAttempt(db, alice, attempt(2, "junior", 70));
-    const data = importData(db, alice, { best: {}, attempts: [attempt(3), attempt(2, "junior", 99), { nonsense: true }, attempt(0)] });
+    const data = importData(db, alice, { best: {}, attempts: [attempt(3), attempt(2, "junior", 90), { nonsense: true }, attempt(0)] });
     expect(data.attempts.map((a) => a.at)).toEqual([0, 1, 2, 3]);
     expect(data.attempts.find((a) => a.at === 2)?.percent).toBe(70);
   });

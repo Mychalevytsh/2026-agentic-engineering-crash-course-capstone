@@ -35,6 +35,15 @@ function isResult(value: unknown): value is AttemptResult {
   return typeof id === "string" && typeof topic === "string" && typeof correct === "boolean";
 }
 
+function isConsistent(total: number, correct: number, percent: number, results: AttemptResult[]): boolean {
+  const expectedPercent = total === 0 ? 0 : Math.round((correct / total) * 100);
+  return (
+    total === results.length &&
+    correct === results.filter((result) => result.correct).length &&
+    percent === expectedPercent
+  );
+}
+
 function toAttempt(item: unknown): Attempt | null {
   if (typeof item !== "object" || item === null) return null;
   const { at, level, total, correct, percent, results } = item as Record<string, unknown>;
@@ -42,6 +51,7 @@ function toAttempt(item: unknown): Attempt | null {
   if (!isLevel(level) || !isCount(total) || !isCount(correct) || correct > total) return null;
   if (!isCount(percent) || percent > 100) return null;
   if (!Array.isArray(results) || results.length > MAX_RESULTS || !results.every(isResult)) return null;
+  if (!isConsistent(total, correct, percent, results)) return null;
   return { at, level, total, correct, percent, results };
 }
 

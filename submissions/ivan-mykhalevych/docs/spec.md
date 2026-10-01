@@ -138,8 +138,10 @@ epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic
   `correct` and `percent` follow R4.
 - `parseAttempts(raw)` turns stored JSON into a list and never throws. Invalid JSON or a
   non-array gives `[]`. Entries with a missing or wrongly typed field, an unknown level, a
-  `correct` above `total`, or a `percent` outside 0..100 are dropped. Only the newest 200
-  entries are kept.
+  `correct` above `total`, a `percent` outside 0..100, more than 100 results, or numbers that
+  disagree with the results (`total` is the number of results, `correct` the number of correct
+  results, `percent` is `round(correct / total * 100)`, 0 when `total` is 0) are dropped. Only
+  the newest 200 entries are kept.
 - `appendAttempt(log, attempt, cap)` returns a new list with the attempt last and only the
   newest `cap` entries (default 200, `MAX_ATTEMPTS`). The input is never mutated.
 - The log is stored as JSON under `profileKey("java-trainer-attempts", activeProfileId)`.
@@ -290,6 +292,8 @@ returned or logged in clear text.
 - `deleteSession(db, token)` and `deleteUserSessions(db, userId, exceptToken?)` remove sessions.
 - The session cookie is named `session` with `HttpOnly`, `SameSite=Lax`, `Path=/`, a Max-Age of
   30 days, and `Secure` in production. Logging out clears it.
+- A user keeps at most 10 sessions: creating one deletes the user's oldest ones beyond that, and
+  also deletes every expired session.
 
 ### R24 Authentication service
 - `register({ email, password, displayName })` returns a validation code, `email-taken`, or the
@@ -316,9 +320,9 @@ returned or logged in clear text.
   (R16), attempts are added, de-duplicated by `at`, sorted by `at` and capped to the newest 200.
   Invalid entries are dropped and at most 200 attempts are read.
 - Every call is scoped by the user id taken from the session, never from the request body.
-- Known limits: `recordAttempt` checks the shape of an attempt (R12), not that `percent` agrees with
-  `correct` and `total`, so an account can only forge its own scores. Users and sessions are not
-  capped and registration has no rate limit (no per-IP limiting, see "Out of scope").
+- Known limit: users are not capped and registration has no rate limit (no per-IP limiting, see
+  "Out of scope"). An attempt must agree with its own results (R12), but a client can still
+  invent the answers themselves, so scores of one account are not proof of anything.
 
 ### R26 HTTP API
 JSON under `/api`, all dynamic:
@@ -442,6 +446,7 @@ and multi-server deployment (SQLite is a single-node database).
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
 - v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
+- v0.22 (gap fixes): an attempt must agree with its results (R12, applies to guest and account data) and a user keeps at most 10 sessions (R23); the "forged scores" and "unbounded sessions" limits of v0.21 shrink accordingly.
 - v0.21 (as-built gaps, from `docs/spec-as-built.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
 - v0.20 (review and QA fixes): the body limit is enforced while reading, handler errors answer 500 `internal`, expired failure rows and sessions are purged, an attempt holds at most 100 results, and wrong current passwords show their own message.
 - v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.

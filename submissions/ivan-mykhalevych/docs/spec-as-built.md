@@ -127,8 +127,8 @@ Tables: `users(id, email unique, display_name, password_hash, created_at)`,
 | 1 | `record` falls back to local storage when the server save fails or the session is still loading | R27 says only "recorded on the server while signed in" | Add to R27; intended, prevents losing a finished quiz. Side effect: the result sits in the guest profile and is not in the account |
 | 2 | A malformed email at login gives `invalid-credentials` and is not counted by the throttle | R24 silent | Harmless (no account can have such an email); document |
 | 3 | `register` hashes before the uniqueness check, so timing is the same for taken and free emails | R24 allows `email-taken` anyway | Fine |
-| 4 | `percent` and `results.length` of a posted attempt are not checked against `correct/total` | R12/R25 validate shape only | Known: a user can forge only their own scores; document as a limit |
-| 5 | Sessions per user and users are unbounded; no rate limit on registration | R23/R24 silent | Known limit (single-node course project) |
+| 4 | ~~`percent` and `results.length` were not checked against `correct/total`~~ | Fixed in v0.22: `parseAttempts` requires consistent numbers | Closed. A client can still invent the answers themselves |
+| 5 | ~~Sessions per user were unbounded~~ (fixed in v0.22: at most 10); users are still uncapped and registration has no rate limit | R23/R24 | Known limit (single-node course project) |
 | 6 | Guests produce a console 401 on `/api/auth/me` at every load | R26 requires 401 for "not signed in" | Accepted; could be 200 `{user:null}` if the noise matters |
 | 7 | The Origin check compares host only, not scheme | R26 says "host equals Host" | Matches the spec |
 | 8 | Quiz progress is not saved mid-quiz; a reload loses the running quiz | R3/R5 silent | Intended by KISS; document |
