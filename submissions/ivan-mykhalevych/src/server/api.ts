@@ -42,6 +42,7 @@ const ERROR_STATUS: Partial<Record<AuthError, number>> = {
   "invalid-credentials": 401,
   "email-taken": 409,
   "too-many-attempts": 429,
+  "too-many-registrations": 429,
 };
 
 const fail = (status: number, error: string): ApiResponse => ({ status, body: { error } });
@@ -122,7 +123,7 @@ const handlers: Record<string, Record<string, Handler>> = {
     }),
   },
   "/api/auth/me": {
-    GET: signedIn(({ user }) => ({ status: 200, body: { user } })),
+    GET: ({ user }) => ({ status: 200, body: { user } }),
     PATCH: signedIn(({ db, body, user }) => {
       const result = changeDisplayName(db, user.id, text(body.displayName));
       return result.ok ? { status: 200, body: { user: result.user } } : failAuth(result.error);

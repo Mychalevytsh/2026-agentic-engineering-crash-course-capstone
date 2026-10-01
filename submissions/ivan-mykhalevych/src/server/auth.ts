@@ -20,7 +20,8 @@ export type AuthError =
   | DisplayNameError
   | "email-taken"
   | "invalid-credentials"
-  | "too-many-attempts";
+  | "too-many-attempts"
+  | "too-many-registrations";
 
 export type AuthResult = { ok: true; user: User; token: string } | { ok: false; error: AuthError };
 export type ActionResult = { ok: true } | { ok: false; error: AuthError };
@@ -28,6 +29,8 @@ export type UserResult = { ok: true; user: User } | { ok: false; error: AuthErro
 
 export const MAX_FAILED_LOGINS = 5;
 export const LOCK_WINDOW_MS = 15 * 60 * 1000;
+export const MAX_REGISTRATIONS_PER_HOUR = 30;
+const HOUR_MS = 60 * 60 * 1000;
 
 export interface Credentials {
   email: string;
@@ -48,6 +51,13 @@ let dummyHash: string | null = null;
 function timingDummyHash(): string {
   dummyHash ??= hashPassword("dummy password used only to equalize timing");
   return dummyHash;
+}
+
+function registrationsLastHour(db: Db, now: number): number {
+  const row = db.prepare("SELECT COUNT(*) AS count FROM users WHERE created_at > ?").get(now - HOUR_MS) as unknown as {
+    count: number;
+  };
+  return row.count;
 }
 
 function toPublicUser(record: UserRecord): User {
@@ -106,6 +116,7 @@ export function register(db: Db, input: Registration, now: number): AuthResult {
   const name = validateDisplayName(input.displayName);
   if (!name.ok) return name;
 
+  if (registrationsLastHour(db, now) >= MAX_REGISTRATIONS_PER_HOUR) return { ok: false, error: "too-many-registrations" };
   const passwordHash = hashPassword(input.password);
   return transaction(db, (): AuthResult => {
     const created = createUser(db, { email: email.email, displayName: name.name, passwordHash }, now);

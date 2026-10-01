@@ -131,6 +131,7 @@ export const EN = {
   "error.network-error": "The server is not reachable. Try again.",
   "error.not-signed-in": "Your session has expired. Sign in again.",
   "error.wrong-password": "Wrong password.",
+  "error.too-many-registrations": "Too many accounts were created recently. Try again in an hour.",
   "error.generic": "Something went wrong. Try again.",
 } as const;
 

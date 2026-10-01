@@ -133,5 +133,6 @@ export const UK: Record<MessageKey, string> = {
   "error.network-error": "Сервер недоступний. Спробуйте ще раз.",
   "error.not-signed-in": "Сеанс завершився. Увійдіть знову.",
   "error.wrong-password": "Невірний пароль.",
+  "error.too-many-registrations": "Нещодавно створено забагато акаунтів. Спробуйте за годину.",
   "error.generic": "Щось пішло не так. Спробуйте ще раз.",
 };

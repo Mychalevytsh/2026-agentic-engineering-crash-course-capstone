@@ -58,8 +58,8 @@ function readLocalProgress(): AccountData | null {
 }
 
 async function fetchSession(): Promise<Session> {
-  const me = await send<{ user: AccountUser }>("GET", "/api/auth/me");
-  if (!me.ok) return { status: "guest" };
+  const me = await send<{ user: AccountUser | null }>("GET", "/api/auth/me");
+  if (!me.ok || me.data.user === null) return { status: "guest" };
   const data = await send<AccountData>("GET", "/api/data");
   return data.ok ? { status: "signedIn", user: me.data.user, data: data.data } : { status: "guest" };
 }

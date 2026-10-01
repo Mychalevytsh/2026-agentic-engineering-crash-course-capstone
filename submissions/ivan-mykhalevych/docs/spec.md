@@ -38,7 +38,7 @@ questions chosen at random from the pool, or the whole pool when it is smaller, 
 order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
 deterministic. A running quiz is kept in `sessionStorage` under `java-trainer-quiz:{level}` as JSON after every
 state change, restored when the page loads if it is valid for that level, and removed when the
-quiz finishes or a new one starts. `serializeQuiz(state)` and `parseQuiz(raw)` are pure; `parseQuiz`
+quiz finishes or a new one starts. `serializeQuiz(state)` and `parseQuiz(raw, level)` are pure; `parseQuiz`
 never throws and returns `null` for invalid JSON, a finished quiz, questions that are not
 R1-shaped, answers whose length differs from the questions, an index outside the questions, or a
 selected option outside 0..3. Blocked storage is ignored. Nothing is logged until the quiz finishes (R12).
