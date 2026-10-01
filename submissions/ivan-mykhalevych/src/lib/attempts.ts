@@ -18,6 +18,7 @@ export interface Attempt {
 }
 
 export const MAX_ATTEMPTS = 200;
+export const MAX_RESULTS = 100;
 export const ATTEMPTS_KEY_BASE = "java-trainer-attempts";
 
 function isLevel(value: unknown): value is Level {
@@ -40,7 +41,7 @@ function toAttempt(item: unknown): Attempt | null {
   if (typeof at !== "number" || !Number.isFinite(at)) return null;
   if (!isLevel(level) || !isCount(total) || !isCount(correct) || correct > total) return null;
   if (!isCount(percent) || percent > 100) return null;
-  if (!Array.isArray(results) || !results.every(isResult)) return null;
+  if (!Array.isArray(results) || results.length > MAX_RESULTS || !results.every(isResult)) return null;
   return { at, level, total, correct, percent, results };
 }
 

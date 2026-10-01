@@ -18,6 +18,7 @@ export function hashToken(token: string): string {
 }
 
 export function createSession(db: Db, userId: number, now: number): string {
+  db.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(now);
   const token = randomBytes(TOKEN_BYTES).toString("base64url");
   db.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)").run(
     hashToken(token),

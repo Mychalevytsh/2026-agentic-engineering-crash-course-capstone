@@ -1,7 +1,10 @@
-import { handleApi } from "../../../server/api";
+import { MAX_BODY_BYTES, handleApi } from "../../../server/api";
+import { readLimitedText } from "../../../server/body";
 import { getDatabase } from "../../../server/db";
 
 async function respond(request: Request): Promise<Response> {
+  const body = request.method === "GET" ? "" : await readLimitedText(request, MAX_BODY_BYTES);
+  if (body === null) return Response.json({ error: "body-too-large" }, { status: 413 });
   const result = handleApi(
     getDatabase(),
     {
@@ -11,7 +14,7 @@ async function respond(request: Request): Promise<Response> {
       host: request.headers.get("host"),
       contentType: request.headers.get("content-type"),
       cookie: request.headers.get("cookie"),
-      body: request.method === "GET" ? "" : await request.text(),
+      body,
     },
     Date.now(),
     process.env.NODE_ENV === "production",
