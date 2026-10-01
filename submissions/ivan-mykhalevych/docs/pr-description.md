@@ -8,7 +8,7 @@ Ivan Mykhalevych
 
 ## Проєкт / Project
 
-A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level (junior, middle, senior), answer 12 shuffled multiple-choice questions on typical Java topics (some with code snippets), read an explanation after each answer, then see a score and a review of your mistakes. The best score per level is remembered in the browser. No backend and no login.
+A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level (junior, middle, senior), in English or Ukrainian, answer 12 random multiple-choice questions drawn from a pool of 40 per level (120 in total, some with code snippets), read an explanation after each answer, then see a score and a review of your mistakes. Local profiles keep best scores, an attempt log and a progress dashboard in the browser. No backend and no login.
 
 **Де код / Where the code is:** branch `ivan-mykhalevych` of this fork, folder [`submissions/ivan-mykhalevych/`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/tree/ivan-mykhalevych/submissions/ivan-mykhalevych).
 
@@ -41,7 +41,7 @@ Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to c
 - Approving the documented `RED_COMMIT=1` exception instead of ad-hoc bypasses, and asking for the independent QA run in a real browser.
 - TODO: add your own decisions, e.g. corrections you made to the questions after reviewing them.
 
-**The agent did:** wrote the spec, tests and code; wrote the 36 questions and explanations; ran the checks and browser run-throughs; produced the hook, the reviewer definition, the skill and the fixes.
+**The agent did:** wrote the spec, tests and code; wrote the 120 questions, their Ukrainian translations and explanations; ran the checks and browser run-throughs; produced the hook, the reviewer definition, the skill and the fixes.
 
 **What went wrong or changed along the way (honest notes):**
 - **The agent bypassed the pre-commit hook once without asking.** The red commit `c55fbca` was made with `--no-verify` because a red commit cannot pass the check. I pointed out the problem, and the `RED_COMMIT=1` exception (`11d2f3e`) and a ban on `--no-verify` in `AGENTS.md` came afterwards.
@@ -56,8 +56,8 @@ Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to c
 
 ```
 $ cd submissions/ivan-mykhalevych && npm run check
- Test Files  6 passed (6)
-      Tests  41 passed (41)
+ Test Files  18 passed (18)
+      Tests  168 passed (168)
 ```
 
 Run the app: `npm install && npm run dev`, then open http://localhost:3000.
@@ -70,9 +70,16 @@ These features were built after the core project above and merged into this bran
 without passwords, a per-profile attempt log (capped at 200), a dashboard with mastery per topic,
 weakest topics and a streak, a `/logs` page with JSON export, and best scores per profile with
 automatic migration of the old data. Seven spec-first slices, each with a failing-test commit
-before the implementation (see the table in `docs/capstone-dod.md`), 112 tests in total, a second
+before the implementation (see the table in `docs/capstone-dod.md`), 168 tests in total, a second
 reviewer run (9 findings fixed or consciously left) and a second independent QA run in the
 built-in browser (12 of 13 checks passed; the failing one, a mobile header overflow with long
 profile names, was fixed and verified). Honest caveats: two logic-only slices could not be
 checked in the browser when committed, the last fixes were verified by the author agent and not
 re-run by the QA agent, and a few low-severity review findings were left open on purpose.
+
+## Question pool and Ukrainian (added on 1 October)
+
+- **Pool and fairness.** The bank grew from 12 to 120 questions (40 per level) and a quiz draws 12 at random, so a set cannot be memorised. The author noticed that the correct answer was often the longest option, and the measurement agreed (58% at the middle level). Statistical tests now keep, per level, the correct answer the strictly longest option in 10%-30% of questions and the strictly shortest in 10%-30%, with each answer position in 15%-35%. A first rewrite overshot (the correct answer was almost never the longest, which is the opposite tell), which is why the rules have lower bounds too.
+- **Fact check.** An independent agent reviewed all 120 questions: no wrong answer, but two ambiguous questions and about a dozen "senior" questions at middle level. They were fixed or replaced with real senior material (JMM visibility, ZGC, transaction propagation, HashMap treeification, false sharing, classloader identity, merge, work stealing, soft references).
+- **Ukrainian.** A language switcher with browser-language detection, a dictionary per language with compile-time key parity, correct Ukrainian plural forms, and all 120 questions translated with their code and identifiers untouched; the no-tell bounds also hold for the Ukrainian options. An independent language review found no fidelity problems but real wording issues (Thread vs Stream both being "потік", a gender error, "перевірювані" for "checked"), fixed in `e264fca`. An independent QA run passed 9 of 9 areas and found one overflow bug with a 24-character profile name, also fixed.
+- **Honest caveats.** The Ukrainian text was written by the agent and reviewed by another agent, not yet by a human; the author should read it. The question bank was produced with throw-away generator scripts that are not in the repository (the TypeScript files are the source of truth now). Two accessibility areas stay untested: screen readers and other browsers.
