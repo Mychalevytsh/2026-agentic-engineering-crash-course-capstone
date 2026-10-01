@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { QUESTION_BANK, getQuestions } from "./questions";
 import { LEVELS } from "./types";
+import type { Question } from "./types";
 
 describe("question bank rules (spec R2)", () => {
-  it.each(LEVELS)("has at least 10 questions for %s", (level) => {
-    expect(QUESTION_BANK.filter((q) => q.level === level).length).toBeGreaterThanOrEqual(10);
+  it.each(LEVELS)("has at least 40 questions for %s", (level) => {
+    expect(QUESTION_BANK.filter((q) => q.level === level).length).toBeGreaterThanOrEqual(40);
   });
 
   it("has unique ids", () => {
@@ -51,5 +52,36 @@ describe("getQuestions (spec R3)", () => {
   it.each(LEVELS)("returns only %s questions in bank order", (level) => {
     const expected = QUESTION_BANK.filter((q) => q.level === level);
     expect(getQuestions(level)).toEqual(expected);
+  });
+});
+
+describe("no answer tell (spec R2)", () => {
+  const MAX_SHARE = 0.3;
+  const optionLengths = (q: Question) => q.options.map((option) => option.length);
+  const isStrictly = (q: Question, pick: (lengths: number[]) => number) => {
+    const lengths = optionLengths(q);
+    const target = pick(lengths);
+    return lengths[q.correctIndex] === target && lengths.filter((length) => length === target).length === 1;
+  };
+
+  it.each(LEVELS)("%s: the correct option is rarely the strictly longest", (level) => {
+    const questions = QUESTION_BANK.filter((q) => q.level === level);
+    const share = questions.filter((q) => isStrictly(q, (l) => Math.max(...l))).length / questions.length;
+    expect(share).toBeLessThanOrEqual(MAX_SHARE);
+  });
+
+  it.each(LEVELS)("%s: the correct option is rarely the strictly shortest", (level) => {
+    const questions = QUESTION_BANK.filter((q) => q.level === level);
+    const share = questions.filter((q) => isStrictly(q, (l) => Math.min(...l))).length / questions.length;
+    expect(share).toBeLessThanOrEqual(MAX_SHARE);
+  });
+
+  it.each(LEVELS)("%s: every answer position holds 15% to 35% of the correct answers", (level) => {
+    const questions = QUESTION_BANK.filter((q) => q.level === level);
+    for (const position of [0, 1, 2, 3]) {
+      const share = questions.filter((q) => q.correctIndex === position).length / questions.length;
+      expect(share, `position ${position}`).toBeGreaterThanOrEqual(0.15);
+      expect(share, `position ${position}`).toBeLessThanOrEqual(0.35);
+    }
   });
 });

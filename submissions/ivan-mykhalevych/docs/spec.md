@@ -8,7 +8,7 @@ Let a candidate practise Java interview questions by level (junior, middle, seni
 in a short multiple-choice quiz and see a score.
 
 ## Scope (deliberately small)
-- Levels: `junior`, `middle`, `senior`. About 10 questions per level. Two languages: English and Ukrainian (R17-R19).
+- Levels: `junior`, `middle`, `senior`. At least 40 questions per level in the pool; a quiz draws 12 of them at random (R3). Two languages: English and Ukrainian (R17-R19).
 - Static question bank in code. No backend and no authentication. Profiles are just local names in the browser with no passwords (R10); per-profile data (best scores, attempt log) lives in `localStorage`.
 - Next.js App Router, TypeScript strict, Vitest.
 
@@ -19,15 +19,23 @@ A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
 `correctIndex` (0..3), `explanation`, and an optional `code` (a Java snippet).
 
 ### R2 Question bank rules (enforced by tests)
-- At least 10 questions per level.
+- At least 40 questions per level.
 - Ids are unique.
 - Every question satisfies R1.
 - Answer options in one question are similar in length: longest <= 2x shortest,
   so the correct answer cannot be guessed by its length or specificity.
 - Within a level, `correctIndex` is not the same for every question.
+- No answer tell. Per level, the correct option is the strictly longest option in at most 30%
+  of the questions and the strictly shortest in at most 30%, and each answer position (0 to 3)
+  holds the correct answer in 15% to 35% of the questions. Chance level is 25%, so a candidate
+  cannot score well by always picking the longest option or a favourite position.
 
 ### R3 Selection
-`getQuestions(level)` returns only the questions of that level, in bank order.
+`getQuestions(level)` returns only the questions of that level, in bank order (the pool).
+`QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
+questions chosen at random from the pool, or the whole pool when it is smaller, with the option
+order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
+deterministic.
 
 ### R4 Scoring
 `scoreQuiz(questions, answers)` returns `{ correct, total, percent }`.
@@ -54,7 +62,7 @@ the user's answer (or "Skipped"), the correct answer and the explanation. With n
 and, inside each question, the options in random order. `correctIndex` is updated so it
 still points at the same option text. Inputs are never mutated; `rng` is injected
 (`() => number` in [0, 1)) so tests are deterministic.
-A quiz starts from a "Start quiz" screen; Start and Try again each reshuffle
+A quiz starts from a "Start quiz" screen; Start and Try again each draw a new random set (R3)
 (shuffling happens in the click handler, so server and client HTML always match).
 
 ### R8 Best score per level
@@ -250,6 +258,10 @@ All functions are pure and work on the attempt log of one profile (R12).
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
+- Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12
+  for the same seed; given a pool of 5, it returns all 5.
+- Given any level, the correct option is the strictly longest option in at most 30% of its
+  questions.
 - Given preferred languages `["ru", "uk-UA"]`, `detectLanguage` returns `uk`; given
   `["en-US", "uk"]` it returns `en`; given `[]` or `["fr"]` it returns `en`.
 - Given stored language text `xx`, `parseLanguage` returns `null` and the browser language
@@ -300,6 +312,7 @@ English and Ukrainian, a translated page title or 404 page, right-to-left layout
 
 ## Spec changes
 - v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
+- v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest, shortest, answer position) instead of relying on authors' discipline. Applies before the Ukrainian translation (R19) so it is translated once.
 - v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
 - v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.
 - v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.

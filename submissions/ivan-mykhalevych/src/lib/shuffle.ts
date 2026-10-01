@@ -19,3 +19,9 @@ export function shuffleQuestions(questions: Question[], rng: () => number): Ques
     };
   });
 }
+
+export const QUIZ_LENGTH = 12;
+
+export function pickQuiz(_pool: Question[], _rng: () => number, _length?: number): Question[] {
+  throw new Error("not implemented");
+}
