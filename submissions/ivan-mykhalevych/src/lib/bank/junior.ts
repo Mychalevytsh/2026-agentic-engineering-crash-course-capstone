@@ -50,7 +50,7 @@ export const JUNIOR_QUESTIONS: Question[] = [
     id: "j4",
     level: "junior",
     topic: "Collections",
-    text: "Which operation is fastest on an ArrayList compared to a LinkedList?",
+    text: "Which operation is O(1) on an ArrayList but O(n) on a LinkedList?",
     options: [
       "Reading an item by index",
       "Inserting an item at the head",
@@ -59,7 +59,7 @@ export const JUNIOR_QUESTIONS: Question[] = [
     ],
     correctIndex: 0,
     explanation:
-      "ArrayList is backed by an array, so get(index) is O(1). LinkedList must walk the nodes, which is O(n).",
+      "ArrayList is backed by an array, so get(index) is O(1), while a LinkedList must walk the nodes. Adding or removing at the head is the reverse: O(1) on a LinkedList but O(n) on an ArrayList.",
   },
   {
     id: "j5",
