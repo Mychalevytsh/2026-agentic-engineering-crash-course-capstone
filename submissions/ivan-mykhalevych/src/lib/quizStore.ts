@@ -8,7 +8,10 @@ const keyFor = (level: Level) => `${QUIZ_KEY_BASE}:${level}`;
 
 export function loadRunningQuiz(level: Level): QuizState | null {
   try {
-    return parseQuiz(sessionStorage.getItem(keyFor(level)), level);
+    const raw = sessionStorage.getItem(keyFor(level));
+    const state = parseQuiz(raw, level);
+    if (state === null && raw !== null) sessionStorage.removeItem(keyFor(level));
+    return state;
   } catch {
     return null;
   }

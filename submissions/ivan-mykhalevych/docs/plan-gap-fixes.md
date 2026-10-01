@@ -20,7 +20,7 @@ a retry queue for failed saves (new feature), counting malformed login emails in
 | P4 | A reload ends a running quiz | R3: the running quiz is kept in `sessionStorage` under `java-trainer-quiz:{level}` after every state change, restored on load when valid, removed when the quiz finishes or a new one starts | `quizState.test.ts`: `serializeQuiz` and `parseQuiz` round-trip; garbage, wrong level, answers of the wrong length, an index out of range, a selected option out of range and a finished quiz give `null` | `src/lib/quizState.ts` (pure), `QuizRunner` (storage in an effect, guarded for blocked storage) |
 
 ## Status
-P1, P2, P4 logic: red `test(red): guest me answer, registration limit, quiz persistence`, green `feat(green): guest me answer, registration limit, quiz serialization`. P3 and the P4 screen wiring: UI commit after them, verified in the built-in browser (reload mid-quiz resumed at question 2 and the key was removed when the quiz finished; with `/api/data/attempts` failing for a signed-in user the score screen showed the notice). The QA run of step 4 is not done yet.
+P1, P2, P4 logic: red `test(red): guest me answer, registration limit, quiz persistence`, green `feat(green): guest me answer, registration limit, quiz serialization`. P3 and the P4 screen wiring: UI commit after them, verified in the built-in browser (reload mid-quiz resumed at question 2 and the key was removed when the quiz finished; with `/api/data/attempts` failing for a signed-in user the score screen showed the notice). The independent QA run (step 4) found no functional bugs; its observations are in `docs/qa-plan.md`.
 
 ## Order of work and checks
 1. Spec v0.23 for all four slices, commit.

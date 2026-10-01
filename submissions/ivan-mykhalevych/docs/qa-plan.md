@@ -141,4 +141,19 @@ Not tested: clearing cookies mid-session, the dashboard on mobile while signed i
 | Failing server save while signed in | score screen shows "saved on this device only" (Ukrainian text verified); result is in the local profile |
 | Registration limit | unit-tested only (30 per hour, 429); not exercised in the browser |
 
-Not yet run: an independent QA agent on these changes (step 4 of the plan).
+Independent QA run on a production build (agent, about 112k tokens, 122 tool calls): no functional
+bugs. Everything in the table above, plus guest page loads without any failed request, corrupt and
+tampered saved quizzes falling back to the start screen, unavailable `sessionStorage`, the
+registration limit message in both languages, lockout, import, delete, language dropdown contrast,
+mobile 375 px and keyboard focus, passed.
+
+Observations and decisions:
+
+| # | Observation | Decision |
+|---|---|---|
+| 1 | The 429 came after 30 accounts although one earlier account existed | the limit counts accounts that still exist, so a deleted account frees a slot; accepted, stated here |
+| 2 | No `Retry-After` header on the 429 | accepted, the message says "an hour" |
+| 3 | At the limit, an existing email gets 429 instead of `email-taken` | accepted (the limit is checked first, before any hashing) |
+| 4 | A resumed quiz keeps the language it started in | intended, the quiz is a snapshot |
+| 5 | A saved quiz in a tab survives signing in or out in that tab, so its result goes to the account that is active at the end | accepted, cosmetic |
+| 6 | A corrupt saved quiz stayed in `sessionStorage` after the start screen was shown | fixed: `loadRunningQuiz` removes it (red `test(red): a corrupt saved quiz is removed`) |
