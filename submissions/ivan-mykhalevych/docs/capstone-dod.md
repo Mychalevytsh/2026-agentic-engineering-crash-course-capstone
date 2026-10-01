@@ -54,9 +54,11 @@ Status as of the last update of this file.
 ### A. The project
 - [x] A small project exists and works: Java interview trainer (3 levels, a 120-question pool
       with code snippets, 12-question random quizzes, English and Ukrainian, profiles,
-      dashboard, logs). Evidence: `npm run check` 168/168 tests, `next build` OK, browser run-throughs, and an
-      independent QA run (10/10 checks, `docs/qa-plan.md`), latest fix `19945a7`.
-- [ ] Light theme and phone-width layout checked (nice to have).
+      dashboard, logs). Evidence: `npm run check` 294/294 tests, `next build` OK, browser run-throughs, and
+      independent QA runs (`docs/qa-plan.md`), latest `48d6a42`.
+- [x] Light theme and phone-width layout checked (nice to have): light-theme contrast fix and
+      mobile 375 px checks with no horizontal scroll on every page, signed out and signed in
+      (`docs/qa-plan.md`: runs 2 and 3, Accounts, Gap fixes v0.23).
 
 ### B. Practices, each with clickable proof
 Choose the practices that fit; each ticked one needs proof, never just a name.
@@ -126,7 +128,8 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 ### C. Submission
 - [ ] Video, 1-2 minutes, opens without login; shows the product and how it was built
       agentically. (Only the author can record this.)
-- [ ] Branch pushed to the fork `Mychalevytsh/2026-agentic-engineering-crash-course-capstone`.
+- [x] Branch pushed to the fork `Mychalevytsh/2026-agentic-engineering-crash-course-capstone`:
+      `git push origin ivan-mykhalevych` ended with `de4711c..48d6a42`; push again after any new commit.
 - [ ] Pull Request opened from the fork with the template fully filled in: real name, video
       link, practices with proof, tools/MCPs, what I decided vs what the agent decided,
       and the verification command with its output.
@@ -142,7 +145,8 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 
 ### What the human (Ivan) decided, to record for the PR
 - Chose the project idea and pivoted it to a Java interview trainer.
-- Set the scope: simple, three levels, English only, trainer not interview simulator.
+- Set the scope: simple, three levels, trainer not interview simulator; English first, then
+  asked for Ukrainian and for the correct answer not to be guessable by length.
 - Chose the dark code-editor look and a generated background.
 - Reviews the question bank for accuracy. (Pending: record any corrections.)
 
