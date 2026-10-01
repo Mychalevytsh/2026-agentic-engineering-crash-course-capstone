@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   LOCK_WINDOW_MS,
+  MAX_REGISTRATIONS_PER_HOUR,
   MAX_FAILED_LOGINS,
   changeDisplayName,
   changePassword,
@@ -12,7 +13,7 @@ import {
 import { openDatabase } from "./db";
 import type { Db } from "./db";
 import { getSessionUser } from "./sessions";
-import { findUserByEmail, findUserById } from "./users";
+import { createUser, findUserByEmail, findUserById } from "./users";
 
 let db: Db;
 const NOW = 1_700_000_000_000;
@@ -199,5 +200,34 @@ describe("housekeeping (spec R24)", () => {
     wrongLogin(NOW + LOCK_WINDOW_MS + 1, "new@example.com");
     const rows = db.prepare("SELECT email FROM login_failures").all() as { email: string }[];
     expect(rows.map((row) => row.email)).toEqual(["new@example.com"]);
+  });
+});
+
+describe("registration limit (spec R24)", () => {
+  const HOUR = 60 * 60 * 1000;
+  const fill = (count: number) => {
+    for (let i = 0; i < count; i++) createUser(db, { email: `u${i}@example.com`, displayName: "U", passwordHash: "h" }, NOW);
+  };
+
+  it("refuses a new account when the limit was reached within the last hour", () => {
+    expect(MAX_REGISTRATIONS_PER_HOUR).toBe(30);
+    fill(MAX_REGISTRATIONS_PER_HOUR);
+    expect(register(db, { email: "late@example.com", password: PASSWORD, displayName: "L" }, NOW + 1000)).toEqual({
+      ok: false,
+      error: "too-many-registrations",
+    });
+    expect(findUserByEmail(db, "late@example.com")).toBeNull();
+  });
+
+  it("allows registration again once the accounts are older than an hour", () => {
+    fill(MAX_REGISTRATIONS_PER_HOUR);
+    expect(register(db, { email: "late@example.com", password: PASSWORD, displayName: "L" }, NOW + HOUR + 1).ok).toBe(true);
+  });
+
+  it("allows registration just below the limit and does not affect login", () => {
+    mustRegister();
+    fill(MAX_REGISTRATIONS_PER_HOUR - 2);
+    expect(register(db, { email: "last@example.com", password: PASSWORD, displayName: "L" }, NOW).ok).toBe(true);
+    expect(login(db, { email: "ann@example.com", password: PASSWORD }, NOW + 1).ok).toBe(true);
   });
 });

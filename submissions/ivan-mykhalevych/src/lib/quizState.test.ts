@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { initQuiz, nextQuestion, selectOption } from "./quizState";
+import { initQuiz, nextQuestion, parseQuiz, selectOption, serializeQuiz } from "./quizState";
+import type { QuizState } from "./quizState";
 import { scoreQuiz } from "./scoring";
 import type { Question } from "./types";
 
@@ -58,4 +59,37 @@ describe("quiz state (spec R5)", () => {
     expect(scoreQuiz(s.questions, s.answers)).toEqual({ correct: 2, total: 2, percent: 100 });
   });
 
+});
+
+describe("serializeQuiz and parseQuiz (spec R3)", () => {
+  const q = (id: string, level: Question["level"] = "junior", extra: Partial<Question> = {}): Question => ({
+    id,
+    level,
+    topic: "T",
+    text: "text",
+    options: ["a", "b", "c", "d"],
+    correctIndex: 1,
+    explanation: "e",
+    ...extra,
+  });
+  const running: QuizState = { ...initQuiz([q("1"), q("2", "junior", { code: "int x;" })]), index: 1, selected: 2, answers: [0, 2] };
+
+  it("round-trips a running quiz", () => {
+    expect(parseQuiz(serializeQuiz(running), "junior")).toEqual(running);
+  });
+
+  it("returns null for anything that is not a valid running quiz of that level", () => {
+    const bad = (state: unknown) => JSON.stringify(state);
+    expect(parseQuiz(null, "junior")).toBeNull();
+    expect(parseQuiz("{broken", "junior")).toBeNull();
+    expect(parseQuiz("42", "junior")).toBeNull();
+    expect(parseQuiz(serializeQuiz({ ...running, finished: true }), "junior")).toBeNull();
+    expect(parseQuiz(serializeQuiz(running), "senior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, answers: [0] }), "junior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, index: 5 }), "junior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, selected: 4 }), "junior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, selected: 3 }), "junior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, questions: [] , answers: []}), "junior")).toBeNull();
+    expect(parseQuiz(bad({ ...running, questions: [{ ...q("1"), options: ["a", "b", "c"] }, q("2")] }), "junior")).toBeNull();
+  });
 });

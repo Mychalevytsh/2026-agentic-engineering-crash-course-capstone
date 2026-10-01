@@ -3,6 +3,7 @@ import { handleApi } from "./api";
 import type { ApiResponse } from "./api";
 import { openDatabase } from "./db";
 import type { Db } from "./db";
+import { createUser } from "./users";
 
 const NOW = 1_000_000;
 const PASSWORD = "correct horse battery";
@@ -119,8 +120,10 @@ describe("me, logout, password, delete (spec R26)", () => {
   it("returns the signed-in user and 401 otherwise", () => {
     const cookie = signUp();
     expect(call("GET", "/api/auth/me", undefined, { cookie })).toMatchObject({ status: 200, body: { user: { email: "ann@example.com", displayName: "Ann" } } });
-    expect(call("GET", "/api/auth/me")).toEqual({ status: 401, body: { error: "not-signed-in" } });
-    expect(call("GET", "/api/auth/me", undefined, { cookie: "session=bogus" }).status).toBe(401);
+    expect(call("GET", "/api/auth/me")).toEqual({ status: 200, body: { user: null } });
+    expect(call("GET", "/api/auth/me", undefined, { cookie: "session=bogus" })).toEqual({ status: 200, body: { user: null } });
+    expect(call("PATCH", "/api/auth/me", { displayName: "x" }).status).toBe(401);
+    expect(call("DELETE", "/api/auth/me", { password: "x" }).status).toBe(401);
   });
 
   it("finds the session cookie among other cookies", () => {
@@ -140,7 +143,7 @@ describe("me, logout, password, delete (spec R26)", () => {
     const response = call("POST", "/api/auth/logout", undefined, { cookie });
     expect(response).toMatchObject({ status: 200, body: { ok: true } });
     expect(response.setCookie).toContain("Max-Age=0");
-    expect(call("GET", "/api/auth/me", undefined, { cookie }).status).toBe(401);
+    expect(call("GET", "/api/auth/me", undefined, { cookie })).toEqual({ status: 200, body: { user: null } });
     expect(call("POST", "/api/auth/logout")).toMatchObject({ status: 200 });
   });
 
@@ -152,7 +155,7 @@ describe("me, logout, password, delete (spec R26)", () => {
     expect(call("POST", "/api/auth/password", { current: PASSWORD, next: "short" }, { cookie: first })).toMatchObject({ status: 400, body: { error: "password-short" } });
     expect(call("POST", "/api/auth/password", { current: PASSWORD, next: newPassword }, { cookie: first })).toMatchObject({ status: 200, body: { ok: true } });
     expect(call("GET", "/api/auth/me", undefined, { cookie: first }).status).toBe(200);
-    expect(call("GET", "/api/auth/me", undefined, { cookie: second }).status).toBe(401);
+    expect(call("GET", "/api/auth/me", undefined, { cookie: second }).body).toEqual({ user: null });
     expect(call("POST", "/api/auth/login", { email: "ann@example.com", password: newPassword }).status).toBe(200);
     expect(call("POST", "/api/auth/password", { current: PASSWORD, next: newPassword })).toMatchObject({ status: 401, body: { error: "not-signed-in" } });
   });
@@ -215,7 +218,7 @@ describe("request checks (spec R26)", () => {
   });
 
   it("allows GET without an Origin", () => {
-    expect(call("GET", "/api/auth/me", undefined, { origin: null }).status).toBe(401);
+    expect(call("GET", "/api/auth/me", undefined, { origin: null }).status).toBe(200);
   });
 
   it("requires JSON bodies of at most 100 kB", () => {
@@ -266,5 +269,13 @@ describe("robustness (spec R26)", () => {
   it("does not resolve inherited property names as methods", () => {
     expect(call("constructor", "/api/auth/me").status).toBe(405);
     expect(call("GET", "/api/constructor").status).toBe(404);
+  });
+});
+
+describe("registration limit (spec R24, R26)", () => {
+  it("answers 429 too-many-registrations when 30 accounts were created in the last hour", () => {
+    for (let i = 0; i < 30; i++) createUser(db, { email: `u${i}@example.com`, displayName: "U", passwordHash: "h" }, NOW);
+    const response = call("POST", "/api/auth/register", { email: "late@example.com", password: PASSWORD, displayName: "L" });
+    expect(response).toEqual({ status: 429, body: { error: "too-many-registrations" } });
   });
 });
