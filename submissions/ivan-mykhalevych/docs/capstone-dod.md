@@ -113,8 +113,8 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
 - [x] **Accounts slice (optional, branch `feature/accounts`).** Spec R20-R28 `7468323`; red
       then green per slice: hashing `49d1d68` -> `971ecf8`, users and sessions `c86ab08` ->
       `f85697a`, auth `26c3d4c` -> `16389d6`, data `ba1ef04` -> `65d80f8`, HTTP API `623e1be`
-      -> `622e388`, client API `421f991` (red before it), review fixes red -> green
-      (`test(red): security review fixes`), QA fixes `66b5bd2`. 279 tests. Independent security
+      -> `622e388`, client `c3218a9` -> `421f991`, review fixes `5150634` -> `a902b4b`, QA fixes
+      `66b5bd2`. 279 tests. Independent security
       review and black-box QA in `docs/qa-plan.md` ("Accounts"), no high findings.
 - [ ] Optional: autonomy log (`templates/autonomy-log.md`), Project Factory. Skipped unless
       time allows.
