@@ -157,3 +157,11 @@ Observations and decisions:
 | 4 | A resumed quiz keeps the language it started in | intended, the quiz is a snapshot |
 | 5 | A saved quiz in a tab survives signing in or out in that tab, so its result goes to the account that is active at the end | accepted, cosmetic |
 | 6 | A corrupt saved quiz stayed in `sessionStorage` after the start screen was shown | fixed: `loadRunningQuiz` removes it (red `test(red): a corrupt saved quiz is removed`) |
+
+## First screen fits the viewport (2026-10-02, author agent, built-in browser)
+
+Requested by the author after seeing the home page need scrolling. Before: 840 px page height at
+1366 x 650 (190 px of scrolling). After the compact layout: page height equals the viewport at
+1366 x 650 (Ukrainian) and 1280 x 600 (English and Ukrainian), the cards end at 521 px and
+501 px; header and content stay aligned (both start at x = 319 at 1366 px); the title wraps to two
+lines; no horizontal overflow at 375 px. Rule recorded in `docs/design.md`.

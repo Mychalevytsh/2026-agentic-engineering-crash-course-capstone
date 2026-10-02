@@ -8,5 +8,5 @@ export default function BestScore({ level }: { level: Level }) {
   const best = useProgress()?.best[level];
   const { t } = useT();
   if (best === undefined) return null;
-  return <span className="mt-3 font-mono text-sm text-good">{t("best.label", { percent: best })}</span>;
+  return <span className="mt-2 font-mono text-sm text-good">{t("best.label", { percent: best })}</span>;
 }
