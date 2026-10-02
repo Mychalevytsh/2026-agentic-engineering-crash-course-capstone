@@ -141,7 +141,9 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       (open, head `Mychalevytsh:ivan-mykhalevych`, base `main`, body follows the template).
 - [x] The PR description is honest: includes what went wrong or was changed along the way
       (`docs/pr-description.md`, "What went wrong or changed along the way").
-- [ ] PR link pasted into the course platform field, before the deadline.
+- [x] PR link pasted into the course platform field, before the deadline: submitted on
+      2 October 2026, the platform shows "Answer submitted. Waiting for evaluation." with
+      https://github.com/koldovsky/2026-agentic-engineering-crash-course-capstone/pull/14.
 
 ### D. What gets a submission returned (avoid)
 - Practices named without proof.
