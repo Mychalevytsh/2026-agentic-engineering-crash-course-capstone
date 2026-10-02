@@ -134,9 +134,11 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       decided this length is acceptable.
 - [x] Branch pushed to the fork `Mychalevytsh/2026-agentic-engineering-crash-course-capstone`:
       `git push origin ivan-mykhalevych` ended with `de4711c..48d6a42`; push again after any new commit.
-- [ ] Pull Request opened from the fork with the template fully filled in: real name, video
+- [x] Pull Request opened from the fork with the template fully filled in: real name, video
       link, practices with proof, tools/MCPs, what I decided vs what the agent decided,
-      and the verification command with its output.
+      and the verification command with its output:
+      https://github.com/koldovsky/2026-agentic-engineering-crash-course-capstone/pull/14
+      (open, head `Mychalevytsh:ivan-mykhalevych`, base `main`, body follows the template).
 - [x] The PR description is honest: includes what went wrong or was changed along the way
       (`docs/pr-description.md`, "What went wrong or changed along the way").
 - [ ] PR link pasted into the course platform field, before the deadline.
