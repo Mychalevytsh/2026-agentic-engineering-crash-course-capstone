@@ -1,5 +1,8 @@
 # Capstone: main instruction and Definition of Done
 
+> Commit hashes in this file refer to the unsquashed history, kept in the git tag `full-history`
+> (every red and green step). The branch holds the same content as a few phase commits.
+
 Source: the course's mandatory assignment (translated from Ukrainian). This file is the
 main instruction for the project. `docs/spec.md` and `docs/design.md` describe the
 product; this file describes what must be true before we submit.

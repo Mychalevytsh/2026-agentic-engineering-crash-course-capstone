@@ -1,5 +1,8 @@
 # Independent QA plan (maker != checker, second check)
 
+> Commit hashes in this file refer to the unsquashed history, kept in the git tag `full-history`
+> (every red and green step). The branch holds the same content as a few phase commits.
+
 A separate agent that did not write the app tests it as a black box in a real Chrome
 browser through the Claude-in-Chrome extension. It may read only `docs/spec.md` for the
 expected behaviour, never the source, and it edits nothing.

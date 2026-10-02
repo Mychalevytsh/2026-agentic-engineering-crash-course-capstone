@@ -2,6 +2,10 @@
      Replace the TODO markers (video link, your own notes) before submitting.
      Commit links only resolve after the branch is pushed to the fork. -->
 
+> Commit hashes below refer to the unsquashed history, kept in the git tag `full-history` (every red
+> and green step). The branch itself holds the same content as a few phase commits.
+
+
 ## Ім'я / Name
 
 Ivan Mykhalevych
