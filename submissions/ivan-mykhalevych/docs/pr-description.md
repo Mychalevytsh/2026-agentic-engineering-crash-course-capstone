@@ -18,15 +18,15 @@ A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level
 
 ## Відео-демо / Video demo (1–2 min)
 
-**Link:** https://youtu.be/N_428fi8u04
+**Посилання / Link:** https://youtu.be/N_428fi8u04
 
-## Practices applied, each with proof
+## Застосовані практики Agentic Engineering / Practices applied, each with proof
 
 Commit links: `https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/commit/<hash>`
 
 - [x] **Context engineering** — `AGENTS.md` has a KISS main rule (`b9f8acd`), a rule that the long Definition of Done is read only on demand to keep static context small (`804315f`), and a no-comments skill `self-documenting-code` (`8bcb154`, applied in `40d0ef5`). A deterministic guard, `.githooks/pre-commit` (`024c65f`), runs `npm run check` before each commit. **Rule fired:** a commit with a deliberately failing test was blocked (output in `docs/capstone-dod.md`; exit status 1, HEAD unchanged). The hook has one documented exception, `RED_COMMIT=1`, for test-first red commits (`11d2f3e`); it was verified both ways. Dynamic context: the `vercel-react-best-practices` skill (`7006599`) loads only for React work.
 - [x] **Loops** — one review -> fix -> gate loop, gate = `npm run check`, max 3 iterations; it converged in 1 iteration (`bc0c207`). Small on purpose (KISS).
-- [x] **Verification (red -> green)** — test committed failing first, then the implementation: quiz state `d5be5f3` -> `9ecbb1d`; 10 questions per level `74b3c04` -> `dbfb9cb`; mistakes review and shuffle `d27d97d` -> `361332d`; best score per level `c55fbca` -> `a612d48`; code-snippet questions `7781d6a` -> `790e9d3`. The question bank has tests that enforce its own rules (similar option lengths, varied answer positions). Current result: `npm run check` 41/41 tests, `next build` OK.
+- [x] **Verification (red -> green)** — test committed failing first, then the implementation: quiz state `d5be5f3` -> `9ecbb1d`; 10 questions per level `74b3c04` -> `dbfb9cb`; mistakes review and shuffle `d27d97d` -> `361332d`; best score per level `c55fbca` -> `a612d48`; code-snippet questions `7781d6a` -> `790e9d3`. The question bank has tests that enforce its own rules (similar option lengths, varied answer positions). Later features follow the same pattern (see the slice tables in `docs/capstone-dod.md`). Final result: `npm run check` 294/294 tests in 29 files, `next build` OK.
 - [x] **maker != checker** — two separate checkers that did not write the code:
   1. A read-only reviewer agent, `.claude/agents/reviewer.md` (`b47bbf8`). One run found five real issues (two defensible wrong options, one partly defensible option, a correct answer that was the longest option, dead code); fixed in `bc0c207`.
   2. An independent black-box QA agent in the built-in browser (`docs/qa-plan.md`): **10/10 checks passed** on commit `06509f2` and it found two low-severity issues (mistakes review omitted the code; keyboard focus was lost), fixed in `19945a7` after a spec update (`b52b50e`). A first attempt through the Chrome extension was blocked because no Chrome was connected, so nothing was tested then.
@@ -38,7 +38,7 @@ Commit links: `https://github.com/Mychalevytsh/2026-agentic-engineering-crash-co
 
 ## Інструменти та MCP / Tools and MCP
 
-Claude Code (desktop app) with Claude models (Sonnet 5.5 for most of the work, Opus 5.5 at the end); the built-in browser pane to check the running app; subagents for review and checks (the read-only reviewer, black-box QA runs in the browser, a security review of the accounts, a fact check of the questions and a Ukrainian language review); a git pre-commit hook; the `vercel-react-best-practices` skill from skills.sh and a project skill for the no-comments rule. No MCP servers beyond the app's built-ins. The stack is Next.js 16, TypeScript strict, Tailwind and Vitest. The background art is a generated inline SVG (no external images).
+Claude Code (desktop app) with Claude models (Sonnet 5.5 for most of the work, Opus 5.5 at the end); the built-in browser pane to check the running app; subagents for review and checks (the read-only reviewer, black-box QA runs in the browser, a security review of the accounts, a fact check of the questions and a Ukrainian language review); a git pre-commit hook; the `vercel-react-best-practices` skill from skills.sh and a project skill for the no-comments rule. MCP: only the Claude desktop app's built-in tools (the browser pane used for QA); no external MCP servers. The stack is Next.js 16, TypeScript strict, Tailwind and Vitest. The background art is a generated inline SVG (no external images).
 
 ## Що вирішував(ла) я, а що агент / What I decided vs what the agent did
 
@@ -95,13 +95,13 @@ re-run by the QA agent, and a few low-severity review findings were left open on
 - **Pool and fairness.** The bank grew from 12 to 120 questions (40 per level) and a quiz draws 12 at random, so a set cannot be memorised. The author noticed that the correct answer was often the longest option, and the measurement agreed (58% at the middle level). Statistical tests now keep, per level, the correct answer the strictly longest option in 10%-30% of questions and the strictly shortest in 10%-30%, with each answer position in 15%-35%. A first rewrite overshot (the correct answer was almost never the longest, which is the opposite tell), which is why the rules have lower bounds too.
 - **Fact check.** An independent agent reviewed all 120 questions: no wrong answer, but two ambiguous questions and about a dozen "senior" questions at middle level. They were fixed or replaced with real senior material (JMM visibility, ZGC, transaction propagation, HashMap treeification, false sharing, classloader identity, merge, work stealing, soft references).
 - **Ukrainian.** A language switcher with browser-language detection, a dictionary per language with compile-time key parity, correct Ukrainian plural forms, and all 120 questions translated with their code and identifiers untouched; the no-tell bounds also hold for the Ukrainian options. An independent language review found no fidelity problems but real wording issues (Thread vs Stream both being "потік", a gender error, "перевірювані" for "checked"), fixed in `e264fca`. An independent QA run passed 9 of 9 areas and found one overflow bug with a 24-character profile name, also fixed.
-- **Honest caveats.** The Ukrainian text was written by the agent and reviewed by another agent, not yet by a human; the author should read it. The question bank was produced with throw-away generator scripts that are not in the repository (the TypeScript files are the source of truth now). Two accessibility areas stay untested: screen readers and other browsers.
+- **Honest caveats.** The Ukrainian text was written by the agent and reviewed by another agent, not yet by a human; the author should read it. The question bank was produced with throw-away generator scripts that are not in the repository (the TypeScript bank files are the only copy of the questions now). Two accessibility areas stay untested: screen readers and other browsers.
 
 ## Accounts (built on `feature/accounts`, merged into this branch in `8050208`)
 
 - **What.** Real accounts next to the guest mode: email and password, sessions in an HttpOnly cookie, per-account best scores and attempt log on the server, import of a guest profile. Built on Node's built-in `node:sqlite` and `node:crypto` scrypt, so there are no new dependencies. Spec R20-R28 in `docs/spec.md`.
 - **Process.** Spec first, then a failing-test commit and a green commit per slice (validation and hashing, users and sessions, authentication, account data, HTTP API, client), 294 tests at the end. One independent security review and one independent black-box QA run; their findings were fixed test-first (see "Accounts" in `docs/qa-plan.md`).
-- **Honest caveats.** Hand-rolled authentication; the review found no high issues but this is not a replacement for a professional audit. SQLite is a single-node file, so it will not run as is on serverless hosting. Known limits (lockout abuse, no per-IP rate limit) are listed in the QA plan.
+- **Honest caveats.** Hand-rolled authentication; the review found no high issues but this is not a replacement for a professional audit. SQLite is a single-node file, so it will not run as is on serverless hosting. Known limits (lockout abuse, no per-IP rate limit) are listed in `docs/spec.md` ("Known limits").
 
 ## Gap fixes from a reverse-engineered spec (spec v0.20-v0.23)
 
