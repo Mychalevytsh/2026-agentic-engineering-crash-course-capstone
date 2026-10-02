@@ -12,7 +12,7 @@ Ivan Mykhalevych
 
 ## Проєкт / Project
 
-A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level (junior, middle, senior), in English or Ukrainian, answer 12 random multiple-choice questions drawn from a pool of 40 per level (120 in total, some with code snippets), read an explanation after each answer, then see a score and a review of your mistakes. Local profiles keep best scores, an attempt log and a progress dashboard in the browser. No backend and no login.
+A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level (junior, middle, senior), in English or Ukrainian, answer 12 random multiple-choice questions drawn from a pool of 40 per level (120 in total, some with code snippets), read an explanation after each answer, then see a score and a review of your mistakes. Guests use local profiles with best scores, an attempt log and a progress dashboard in the browser, without signing up; optional accounts keep the progress on the server (SQLite) and can import a guest profile.
 
 **Де код / Where the code is:** branch `ivan-mykhalevych` of this fork, folder [`submissions/ivan-mykhalevych/`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/tree/ivan-mykhalevych/submissions/ivan-mykhalevych).
 
