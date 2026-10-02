@@ -20,6 +20,18 @@ light `accent-2` exist. Native dropdown option lists are themed too (`select opt
 `select option:checked` in `globals.css`), because the browser's default white list made the
 selected language unreadable.
 
+## First screen fits the viewport
+The home page (header, hero and the three level cards) must be fully visible without vertical
+scrolling on laptop screens: any viewport of at least 1280 x 600 px, in English and in Ukrainian.
+This covers the usual page area of a 15.6" laptop (about 1366 x 650 up to 1920 x 950, also with
+display scaling). Phones may scroll vertically but never horizontally. What keeps it compact:
+hero title `text-3xl` (`sm:text-4xl`) that wraps to two lines at the shared `max-w-3xl` width,
+page padding `py-6 sm:py-8`, a two-line intro, and level cards with the glyph and level name on
+one row. Measured on 2026-10-02: the cards end at 521 px at 1366 x 650 (Ukrainian) and at 501 px
+at 1280 x 600 (English); at 1366 x 650 the page height equals the viewport. When content is
+added to the home page, measure again: `document.documentElement.scrollHeight` must not exceed
+`window.innerHeight` at 1280 x 600.
+
 ## Typography
 - Headings and code: JetBrains Mono. Body: Geist Sans.
 - Scale as used in the components: page title `text-3xl` (1.875rem), home hero `text-4xl`,

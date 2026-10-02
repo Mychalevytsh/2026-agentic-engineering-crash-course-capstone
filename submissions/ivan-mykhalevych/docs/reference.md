@@ -22,7 +22,7 @@ authority.
 ## 2. Routes (`src/app`)
 | Path | What it renders |
 |---|---|
-| `/` | `HomeView`: three level cards (glyph, short description, best score, pool size, link) |
+| `/` | `HomeView`: compact hero and three level cards (glyph and level name on one row, short description, best score, pool size, link); sized to fit a 1280 x 600 viewport without scrolling (`docs/design.md`) |
 | `/quiz/[level]` | `QuizView` + `QuizRunner`; static pages for `junior`, `middle`, `senior`; any other level is a 404 |
 | `/dashboard` | `DashboardView` |
 | `/logs` | `LogsView` |
