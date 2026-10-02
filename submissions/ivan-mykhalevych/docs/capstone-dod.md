@@ -129,15 +129,16 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       time allows.
 
 ### C. Submission
-- [ ] Video, 1-2 minutes, opens without login; shows the product and how it was built
-      agentically. (Only the author can record this.)
+- [x] Video opens without login (YouTube oEmbed answers 200) and shows the product and how it was
+      built agentically: https://youtu.be/N_428fi8u04. The local recording runs 2:12; the author
+      decided this length is acceptable.
 - [x] Branch pushed to the fork `Mychalevytsh/2026-agentic-engineering-crash-course-capstone`:
       `git push origin ivan-mykhalevych` ended with `de4711c..48d6a42`; push again after any new commit.
 - [ ] Pull Request opened from the fork with the template fully filled in: real name, video
       link, practices with proof, tools/MCPs, what I decided vs what the agent decided,
       and the verification command with its output.
-- [ ] The PR description is honest: includes what went wrong or was changed along the way
-      (descriptions where "everything went smoothly" get returned).
+- [x] The PR description is honest: includes what went wrong or was changed along the way
+      (`docs/pr-description.md`, "What went wrong or changed along the way").
 - [ ] PR link pasted into the course platform field, before the deadline.
 
 ### D. What gets a submission returned (avoid)

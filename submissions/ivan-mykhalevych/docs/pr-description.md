@@ -1,5 +1,5 @@
 <!-- DRAFT of the Pull Request description. Paste into the PR after the branch is pushed.
-     Replace the remaining TODO marker (your own notes) before submitting.
+     Ready: video link and author notes are filled in.
      Commit links only resolve after the branch is pushed to the fork. -->
 
 > Commit hashes below refer to the unsquashed history, kept in the git tag `full-history` (every red
@@ -30,12 +30,15 @@ Commit links: `https://github.com/Mychalevytsh/2026-agentic-engineering-crash-co
 - [x] **maker != checker** — two separate checkers that did not write the code:
   1. A read-only reviewer agent, `.claude/agents/reviewer.md` (`b47bbf8`). One run found five real issues (two defensible wrong options, one partly defensible option, a correct answer that was the longest option, dead code); fixed in `bc0c207`.
   2. An independent black-box QA agent in the built-in browser (`docs/qa-plan.md`): **10/10 checks passed** on commit `06509f2` and it found two low-severity issues (mistakes review omitted the code; keyboard focus was lost), fixed in `19945a7` after a spec update (`b52b50e`). A first attempt through the Chrome extension was blocked because no Chrome was connected, so nothing was tested then.
-- [x] **Specs up front (SDD)** — [`docs/spec.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/spec.md) (requirements R1-R9, with a change log) and [`docs/design.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/design.md). For each later feature the spec change and red tests come before the code. Not used: OpenSpec, Project Factory, autonomy log (skipped on purpose, KISS).
+- [x] **Specs up front (SDD)** — [`docs/spec.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/spec.md) (requirements R1-R28 written before the code, with a change log; once the work was done it became history, and [`docs/reference.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/reference.md), derived from the code and checked against it by a script, is the single source of truth) and [`docs/design.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/design.md). For each later feature the spec change and red tests come before the code. Not used: OpenSpec, Project Factory, autonomy log (skipped on purpose, KISS).
 - [x] **Definition of Done checklist** — [`docs/capstone-dod.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/capstone-dod.md): the assignment translated to English, each box ticked only with a commit or output as proof.
+- [x] **Plan-driven changes** — [`docs/plan-gap-fixes.md`](https://github.com/Mychalevytsh/2026-agentic-engineering-crash-course-capstone/blob/ivan-mykhalevych/submissions/ivan-mykhalevych/docs/plan-gap-fixes.md): a reverse-engineered description of the code was compared with the spec, and the gaps were closed slice by slice, spec first, red then green (`3dfb2ed`, `49369f4` -> `8de089d`, `f7bb6c4`).
+- [ ] **Trust-level log** — not used.
+- [ ] **Project Factory** — not used (KISS, the project is small).
 
 ## Інструменти та MCP / Tools and MCP
 
-Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to check the running app; two kinds of subagent (the reviewer and the QA agent above); the `vercel-react-best-practices` skill from skills.sh and a project skill for the no-comments rule. No MCP servers beyond the app's built-ins. The stack is Next.js 16, TypeScript strict, Tailwind and Vitest. The background art is a generated inline SVG (no external images).
+Claude Code (desktop app) with Claude models (Sonnet 5.5 for most of the work, Opus 5.5 at the end); the built-in browser pane to check the running app; subagents for review and checks (the read-only reviewer, black-box QA runs in the browser, a security review of the accounts, a fact check of the questions and a Ukrainian language review); a git pre-commit hook; the `vercel-react-best-practices` skill from skills.sh and a project skill for the no-comments rule. No MCP servers beyond the app's built-ins. The stack is Next.js 16, TypeScript strict, Tailwind and Vitest. The background art is a generated inline SVG (no external images).
 
 ## Що вирішував(ла) я, а що агент / What I decided vs what the agent did
 
@@ -43,7 +46,12 @@ Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to c
 - The idea (I changed it early, before writing this app's code), and the scope: a trainer (not an interview simulator), three levels, English first (Ukrainian was added later at my request), "KISS is the main rule", and "no comments in code".
 - The look (dark code-editor theme, generated background), asking for mistakes review, shuffle, best scores and code-snippet questions, and how much process to use (few subagents, watch token cost).
 - Approving the documented `RED_COMMIT=1` exception instead of ad-hoc bypasses, and asking for the independent QA run in a real browser.
-- TODO: add your own decisions, e.g. corrections you made to the questions after reviewing them.
+- Noticed that the correct answer was often the longest option and asked for the answers to be rewritten so that cannot be used as a hint; this became the statistical no-tell tests.
+- Asked for Ukrainian, then chose real accounts with a backend, built on a separate branch, and decided to merge them.
+- Set the rule that the code is the single source of truth: documentation is written from the code, duplicates removed.
+- Asked for the home page to fit a 15.6" laptop screen without scrolling, and for readable dropdown menus.
+- Decided to squash the history into phases and keep the full red -> green history in the tag `full-history`.
+- Chose not to use OpenSpec or Project Factory (KISS); never to push or open the PR without my word.
 
 **The agent did:** wrote the spec, tests and code; wrote the 120 questions, their Ukrainian translations and explanations; ran the checks and browser run-throughs; produced the hook, the reviewer definition, the skill and the fixes.
 
@@ -53,15 +61,16 @@ Claude Code (desktop app) with Claude Sonnet 5.5; the built-in browser pane to c
 - A stale server from an earlier check served an old unstyled page, so it was killed and rebuilt before trusting the screenshot.
 - The reviewer caught things the author missed (see above), and the QA agent found two low-severity UX issues after 10/10 passes.
 - Two of the QA fixes are UI behaviour without a unit test; they were verified in the browser instead.
-- I squashed my early local history into one initial commit to keep the history clean, so the red -> green evidence starts from the later commits listed above.
-- Not verified: light theme, a contrast audit, screen-reader behaviour, refreshing in the middle of a quiz, and blocked-storage mode.
+- I squashed my early local history into one initial commit to keep the history clean. At the end the whole branch was squashed into 14 phase commits for a readable history; every red and green commit is kept in the tag `full-history`, and the commit hashes cited here refer to it.
+- Not verified: screen readers and browsers other than Chromium. (The light-theme contrast, refreshing in the middle of a quiz and blocked storage were checked later; see `docs/qa-plan.md`.)
+- The Ukrainian text was written by the agent and reviewed by another agent, not by a human language expert.
 
 ## Перевірка / Verification
 
 ```
 $ cd submissions/ivan-mykhalevych && npm run check
- Test Files  18 passed (18)
-      Tests  168 passed (168)
+ Test Files  29 passed (29)
+      Tests  294 passed (294)
 ```
 
 Run the app: `npm install && npm run dev`, then open http://localhost:3000.
@@ -90,7 +99,7 @@ re-run by the QA agent, and a few low-severity review findings were left open on
 
 ## Accounts (built on `feature/accounts`, merged into this branch in `8050208`)
 
-- **What.** Real accounts next to the guest mode: email and password, sessions in an HttpOnly cookie, per-account best scores and attempt log on the server, import of a guest profile. Built on Node's built-in `node:sqlite` and `node:crypto` scrypt, so there are no new dependencies. Spec R20-R28 (`docs/spec.md`, `docs/user-management.md`).
+- **What.** Real accounts next to the guest mode: email and password, sessions in an HttpOnly cookie, per-account best scores and attempt log on the server, import of a guest profile. Built on Node's built-in `node:sqlite` and `node:crypto` scrypt, so there are no new dependencies. Spec R20-R28 in `docs/spec.md`; the code as built is described in `docs/reference.md`.
 - **Process.** Spec first, then a failing-test commit and a green commit per slice (validation and hashing, users and sessions, authentication, account data, HTTP API, client), 294 tests at the end. One independent security review and one independent black-box QA run; their findings were fixed test-first (see "Accounts" in `docs/qa-plan.md`).
 - **Honest caveats.** Hand-rolled authentication; the review found no high issues but this is not a replacement for a professional audit. SQLite is a single-node file, so it will not run as is on serverless hosting. Known limits (lockout abuse, no per-IP rate limit) are listed in the QA plan.
 
