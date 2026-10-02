@@ -1,7 +1,7 @@
 # Design tokens (v0.1)
 
-Status: describes the design as implemented. The code is the source of truth; colour values are in
-`src/app/globals.css`, so change a value there, not in components or here.
+Status: part of the specification (`docs/spec.md`), so design changes start here. Colour values live
+only in `src/app/globals.css`; change a value there, not in components.
 
 ## Mood
 A dark "code editor" feel with a warm Java-coffee accent. A light theme follows the

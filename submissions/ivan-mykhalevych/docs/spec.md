@@ -1,483 +1,473 @@
-# Spec: Java Interview Prep (v0.1)
+# Spec: Java Interview Prep (v1.0)
 
-> **History, not authority.** The code is the single source of truth and `docs/reference.md`
-> describes it. This spec records the requirements as they were written before and during the work,
-> with the reasons for each change. Where it differs from the code or `docs/reference.md`, they win.
-
-Status: written BEFORE the new application code. Changes made after coding starts are
-recorded in "Spec changes" at the bottom, with the reason.
+> **This spec is the single source of truth.** Every change starts here: update the requirement
+> and add a line to "Spec changes" with the reason, then write a failing test, then change the
+> code. If the code and this spec disagree, the code is wrong unless the spec is changed on
+> purpose first. Version 1.0 was rewritten from the code on 2 October 2026 so that spec and code
+> agree; the change log below keeps the history of how the requirements evolved.
 
 ## Goal
-Let a candidate practise Java interview questions by level (junior, middle, senior)
-in a short multiple-choice quiz and see a score.
+Let a candidate practise Java interview questions by level (junior, middle, senior) in short
+multiple-choice quizzes, learn from the explanations and the mistakes review, and follow their
+progress. It is a trainer, not an interview simulator: no timers.
 
-## Scope (deliberately small)
-- Levels: `junior`, `middle`, `senior`. At least 40 questions per level in the pool; a quiz draws 12 of them at random (R3). Two languages: English and Ukrainian (R17-R19).
-- Static question bank in code. Two modes: **guest** (local profiles without passwords, R10/R11, data in `localStorage`) and **signed-in** (accounts with email and password, data on the server, R20-R28). Guest mode keeps working without an account. The server uses Node's built-in SQLite and `scrypt`, so there are no new dependencies.
-- Next.js App Router, TypeScript strict, Vitest.
+## Scope
+- Levels `junior`, `middle`, `senior`; a pool of 40 questions per level; a quiz draws 12 at random
+  (R2, R3). Two languages: English and Ukrainian (R17-R19).
+- Two modes. **Guest**: local profiles without passwords, data in the browser (R10-R16).
+  **Signed in**: an account with email and password, data on the server (R20-R28). Guest mode
+  works without an account.
+- Next.js 16 App Router, React 19, TypeScript strict, Tailwind 4, Vitest. No runtime dependency
+  besides Next and React; the server uses Node's built-in `node:sqlite` and `node:crypto` only.
+  Developed and tested on Node 24.
+- Visual rules (colours, type scale, the first screen fitting a laptop viewport) are in
+  `docs/design.md`, which is part of this spec.
 
 ## Requirements
 
 ### R1 Question model
-A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings),
-`correctIndex` (0..3), `explanation`, and an optional `code` (a Java snippet).
+A question has: `id`, `level`, `topic`, `text`, `options` (exactly 4 strings), `correctIndex`
+(0..3), `explanation`, and an optional `code` (a Java snippet).
 
 ### R2 Question bank rules (enforced by tests)
-- At least 40 questions per level.
-- Ids are unique.
-- Every question satisfies R1.
-- Answer options in one question are similar in length: longest <= 2x shortest,
-  so the correct answer cannot be guessed by its length or specificity.
+- The bank (`src/lib/bank/{level}.ts`) holds at least 40 questions per level (currently exactly 40,
+  120 in total). UI code
+  never hard-codes questions; it reads them through `getQuestions` (R3).
+- Ids are unique. Every question satisfies R1 with a non-empty text and explanation.
+- Options of one question are similar in length: the longest is at most twice the shortest.
 - Within a level, `correctIndex` is not the same for every question.
-- No answer tell. Per level, the correct option is the strictly longest option in 10% to 30%
-  of the questions and the strictly shortest in 10% to 30%, and each answer position (0 to 3)
-  holds the correct answer in 15% to 35% of the questions. Chance level is 25%. The upper
-  bounds stop "pick the longest" from working; the lower bounds stop "never pick the longest"
-  from working either, so neither habit beats guessing.
+- No answer tell. Per level, the correct option is the strictly longest option in 10% to 30% of
+  the questions and the strictly shortest in 10% to 30%, and each answer position (0 to 3) holds
+  the correct answer in 15% to 35% of the questions. The upper bounds stop "pick the longest" from
+  working; the lower bounds stop "never pick the longest" from working either.
 
-### R3 Selection
-`getQuestions(level)` returns only the questions of that level, in bank order (the pool).
-`QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
-questions chosen at random from the pool, or the whole pool when it is smaller, with the option
-order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
-deterministic. A running quiz is kept in `sessionStorage` under `java-trainer-quiz:{level}` as JSON after every
-state change, restored when the page loads if it is valid for that level, and removed when the
-quiz finishes or a new one starts. `serializeQuiz(state)` and `parseQuiz(raw, level)` are pure; `parseQuiz`
-never throws and returns `null` for invalid JSON, a finished quiz, questions that are not
-R1-shaped, answers whose length differs from the questions, an index outside the questions, or a
-selected option outside 0..3. Blocked storage is ignored. Nothing is logged until the quiz finishes (R12).
+### R3 Selection and a running quiz
+- `getQuestions(level)` returns only the questions of that level, in bank order (the pool).
+- `QUIZ_LENGTH` is 12. `pickQuiz(pool, rng, length = QUIZ_LENGTH)` returns `length` distinct
+  questions chosen at random from the pool, or the whole pool when it is smaller, with the option
+  order shuffled as in R7. Inputs are never mutated and `rng` is injected, so tests are
+  deterministic.
+- A running quiz is kept in `sessionStorage` (per browser tab) under `java-trainer-quiz:{level}`
+  as JSON after every state change, restored when the page loads if it is valid for that level,
+  and removed when the quiz finishes or a new one starts. A restored quiz keeps the language it
+  started in.
+- `serializeQuiz(state)` and `parseQuiz(raw, level)` are pure. `parseQuiz` never throws and returns
+  `null` for invalid JSON, a finished quiz, questions of another level or not R1-shaped, an empty
+  question list, answers whose length differs from the questions, an index outside the questions,
+  or a selected option that is outside 0..3 or differs from the stored answer at that index. A
+  stored value that `parseQuiz` rejects is deleted. Blocked storage is ignored.
+- Nothing is logged until the quiz finishes (R12).
 
 ### R4 Scoring
-`scoreQuiz(questions, answers)` returns `{ correct, total, percent }`.
-`answers[i]` is the chosen option index for `questions[i]`, or `null` if skipped.
-Skipped counts as wrong. `percent` is rounded to an integer; empty quiz gives 0.
+`scoreQuiz(questions, answers)` returns `{ correct, total, percent }`. `answers[i]` is the chosen
+option index for `questions[i]`, or `null` if skipped. Skipped counts as wrong. `percent` is
+`round(correct / total * 100)`; an empty quiz gives 0.
 
-### R5 Pages
-- `/` lists the three levels.
-- `/quiz/[level]` shows one question at a time. After the user picks an option it shows
-  whether it was correct plus the explanation, then a Next button. After the last
-  question it shows the score (R4) and a "Try again" button.
-- Keyboard focus is never lost: after an answer is chosen it moves to the Next (or See score)
-  button, and after Start or Next it moves to the new question heading.
-- An unknown level shows a not-found page.
+### R5 Pages and quiz screens
+- `/` shows the title, a short introduction and one card per level (glyph and level name on one
+  row, a short description, the best score (R8), the pool size and a start link). The first
+  screen fits the viewport without vertical scrolling from 1280 x 600 px up, in both languages
+  (`docs/design.md`).
+- `/quiz/[level]` exists for the three levels (static pages); any other level is a 404 page.
+- A quiz starts from a "Start quiz" screen. A question screen shows "Question n of 12", the topic,
+  the question, the code block when there is one, and four options labelled A to D. After a choice
+  the options are disabled and "Correct!" or "Not quite." plus the explanation appear in a live
+  region, then "Next" (or "See score" on the last question).
+- Keyboard focus is never lost: after an answer it moves to "Next" (or "See score"), and after
+  Start, Next or the last answer it moves to the new screen's heading.
+- The score screen shows the percent, "x of y correct", "Try again" (a new random quiz) and
+  "Choose another level", and the mistakes review (R6).
 
 ### R6 Mistakes review
-`getMistakes(questions, answers)` returns, in quiz order, one entry `{ question, chosen }`
-for every question answered wrongly or skipped (`chosen` is `null` when skipped).
-The score screen lists them: question text, the code snippet when the question has one,
-the user's answer (or "Skipped"), the correct answer and the explanation. With no mistakes it shows "No mistakes - well done!".
+`getMistakes(questions, answers)` returns, in quiz order, one entry `{ question, chosen }` for every
+question answered wrongly or skipped (`chosen` is `null` when skipped). The score screen lists them:
+question text, the code snippet when the question has one, the user's answer (or "Skipped"), the
+correct answer and the explanation. With no mistakes it shows "No mistakes - well done!".
 
 ### R7 Shuffle
-`shuffleQuestions(questions, rng)` returns a new array with the questions in random order
-and, inside each question, the options in random order. `correctIndex` is updated so it
+`shuffleQuestions(questions, rng)` returns a new array with the questions in random order and,
+inside each question, the options in random order (Fisher-Yates). `correctIndex` is updated so it
 still points at the same option text. Inputs are never mutated; `rng` is injected
-(`() => number` in [0, 1)) so tests are deterministic.
-A quiz starts from a "Start quiz" screen; Start and Try again each draw a new random set (R3)
-(shuffling happens in the click handler, so server and client HTML always match).
+(`() => number` in [0, 1)). Shuffling happens in the click handlers of Start and Try again, so
+server and client HTML always match.
 
 ### R8 Best score per level
-- `parseBestScores(raw)` turns stored text into `{ [level]: percent }`. `null`, invalid JSON,
-  a non-object, unknown level names and values that are not integers 0..100 are ignored;
-  it never throws.
+- `parseBestScores(raw)` turns stored text into `{ [level]: percent }`. `null`, invalid JSON, a
+  non-object, unknown level names and values that are not integers 0..100 are ignored; it never
+  throws.
 - `withBestScore(scores, level, percent)` returns a new object in which that level holds the
   higher of the old and new percent. The input is never mutated.
-- When a quiz finishes, its percent is stored as JSON in `localStorage` under the active
-  profile's best-score key (R16; originally one global key). Storage failures (blocked, full) are ignored.
+- When a guest finishes a quiz, the best score is stored under the active profile's key (R16);
+  signed in, the server keeps it (R25). Storage failures are ignored.
 - Each level card on `/` shows "Best: N%" when a score exists, and nothing otherwise.
 
 ### R9 Code-snippet questions
-- A question may carry `code`. When present it is non-empty and is shown in a code block
-  between the question text and the options; questions without `code` look as before.
-- The bank has at least one question with `code` at every level, so the trainer also covers
-  the "what does this print?" interview format.
+- A question may carry `code`. When present it is non-empty and is shown in a code block between
+  the question text and the options.
+- Every level has at least one question with `code` (currently two each).
 - The option-length and answer-position rules of R2 apply to code questions too.
 
 ### R10 Profiles (storage logic)
 A profile is `{ id, name }`. The state is `{ profiles, activeId }`. There are no passwords.
-- `parseProfiles(raw)` turns stored JSON into a valid state and never throws. Invalid JSON or
-  shape gives the empty state. Profiles with a missing id or an invalid name are dropped;
-  duplicate ids or names (case-insensitive) keep the first; at most 10 profiles are kept.
-  `activeId` is kept only if that profile exists, otherwise it is the first profile id
-  (`null` when there are none).
-- `validateProfileName(name, existing)` trims the name. It is valid when it has 1 to 24
-  characters and is not used by another profile (case-insensitive). The result is
-  `{ ok: true, name }` or `{ ok: false, error }` where `error` is a code: `empty`, `too-long`
-  or `duplicate`. The readable message for each code comes from the interface dictionary (R18).
-- `addProfile(state, name, makeId)` returns `{ ok: true, state }` with the new profile added
-  and active, or `{ ok: false, error }` for an invalid name (the codes above) or `too-many` when 10 profiles
-  exist.
+- `parseProfiles(raw)` turns stored JSON into a valid state and never throws. Invalid JSON or shape
+  gives the empty state. Profiles with a missing id or an invalid name are dropped; duplicate ids
+  or names (case-insensitive) keep the first; at most 10 profiles are kept. `activeId` is kept
+  only if that profile exists, otherwise it is the first profile id (`null` when there are none).
+- `validateProfileName(name, existing)` trims the name. It is valid with 1 to 24 characters and
+  not used by another profile (case-insensitive). The result is `{ ok: true, name }` or
+  `{ ok: false, error }` with the code `empty`, `too-long` or `duplicate`.
+- `addProfile(state, name, makeId)` returns `{ ok: true, state }` with the new profile added and
+  active, or `{ ok: false, error }` for an invalid name or `too-many` when 10 profiles exist.
 - `switchProfile(state, id)` activates an existing profile; an unknown id changes nothing.
 - `removeProfile(state, id)` removes it; if it was active, the first remaining profile becomes
   active (`null` when none remain).
-- `ensureProfile(state, makeId)` adds a profile named "Default" as active when there are none
-  and otherwise returns the state unchanged.
+- `ensureProfile(state, makeId)` adds a profile named "Default" as active when there are none.
 - No function mutates its input.
 
-### R11 Profile switcher
-- The profile state is stored as JSON in `localStorage` under `java-trainer-profiles`
-  (`serializeProfiles`, read back with `parseProfiles`). On first use a profile named
-  "Default" is created (`ensureProfile`).
-- Per-profile data lives under `profileKey(base, id)`, which is `base:id`. The known bases
-  are `java-trainer-attempts` and `java-trainer-best`. Removing a profile deletes the data
-  stored under its keys.
-- Every page has a header with the site title link and a profile switcher: a select that
-  lists the profiles with the active one selected, an "Add profile" control (name field and
-  button) that shows the translated message for the R10 error code, and a "Remove" button for the active profile
-  that asks for confirmation.
-- Changes show up in all open components of the tab without a reload, and in other tabs.
-- Removing a profile first saves the removal and deletes the profile's data keys only if the
-  removal was really saved. The confirmation names the profile that is active at that moment.
+### R11 Guest storage and the profile switcher
+- The profile state is stored as JSON in `localStorage` under `java-trainer-profiles`. On first use
+  a "Default" profile is created. If the stored text exists but cannot be parsed, it is first
+  copied to `java-trainer-profiles-backup`.
+- Per-profile data lives under `profileKey(base, id)` = `base:id`, with the bases
+  `java-trainer-attempts` and `java-trainer-best`. Removing a profile asks for a confirmation that
+  names the active profile, saves the removal, and deletes the profile's data keys only if the
+  removal was really saved.
+- Reads and writes never throw; blocked storage reads as empty. Every write notifies all
+  components of the tab, and other tabs see the change through the `storage` event.
 - `storageAvailable()` is true only when a test value can be written to and removed from
-  `localStorage`; it never throws. When storage is blocked the quiz still works, and the
-  dashboard and logs pages say, in the selected language (R18), that the browser is blocking
-  local storage so progress cannot be saved, instead of showing the loading text forever.
-- The header never makes the page scroll horizontally, even on a 375 px wide screen with a
-  24-character profile name; long names are cut off inside the select. The same holds for
-  every page that shows the profile name (dashboard and logs): a long name wraps inside its box.
-- If the stored profile text exists but cannot be parsed, it is copied to
-  `java-trainer-profiles-backup` before a new "Default" profile replaces it, so no data is
-  silently overwritten.
+  `localStorage`. When storage is blocked the quiz still works, and the dashboard and logs say,
+  in the selected language, that the browser is blocking local storage.
+- In guest mode the header shows the profile switcher: a select of profiles, "Add profile" (a name
+  field and a create button showing the translated message for each R10 error code) and "Remove".
+- Nothing in the header or on the dashboard and logs pages makes the page scroll horizontally,
+  even on a 375 px screen with a 24-character name; long names are cut off or wrap.
 
 ### R12 Attempt log
-An attempt is `{ at, level, total, correct, percent, results }`: `at` is the finish time in
-epoch milliseconds and `results` lists, per question in quiz order, `{ id, topic, correct }`
-(a skipped question counts as incorrect).
+An attempt is `{ at, level, total, correct, percent, results }`: `at` is the finish time in epoch
+milliseconds and `results` lists, per question in quiz order, `{ id, topic, correct }` (a skipped
+question counts as incorrect).
 - `buildAttempt(level, questions, answers, now)` builds the attempt of a finished quiz; `total`,
   `correct` and `percent` follow R4.
-- `parseAttempts(raw)` turns stored JSON into a list and never throws. Invalid JSON or a
-  non-array gives `[]`. Entries with a missing or wrongly typed field, an unknown level, a
-  `correct` above `total`, a `percent` outside 0..100, more than 100 results, or numbers that
-  disagree with the results (`total` is the number of results, `correct` the number of correct
-  results, `percent` is `round(correct / total * 100)`, 0 when `total` is 0) are dropped. Only
-  the newest 200 entries are kept.
-- `appendAttempt(log, attempt, cap)` returns a new list with the attempt last and only the
-  newest `cap` entries (default 200, `MAX_ATTEMPTS`). The input is never mutated.
-- The log is stored as JSON under `profileKey("java-trainer-attempts", activeProfileId)`.
-  When a quiz finishes, exactly one attempt is appended for the active profile; switching
-  profile afterwards on the score screen does not log it again.
+- `parseAttempts(raw)` never throws; invalid JSON or a non-array gives `[]`. Entries are dropped
+  when a field is missing or wrongly typed, the level is unknown, `correct` exceeds `total`,
+  `percent` is outside 0..100, there are more than 100 results, or the numbers disagree with the
+  results (`total` = number of results, `correct` = number of correct results, `percent` =
+  `round(correct / total * 100)`, 0 when `total` is 0). Only the newest 200 entries are kept.
+- `appendAttempt(log, attempt, cap = 200)` returns a new list with the attempt last and only the
+  newest `cap` entries. The input is never mutated.
+- When a quiz finishes, exactly one attempt is recorded (R27 decides where); switching profile
+  afterwards on the score screen does not record it again.
 
 ### R13 Progress
-All functions are pure and work on the attempt log of one profile (R12).
-- `masteryByTopic(attempts)` adds up every result per topic and returns
-  `{ topic, correct, total, percent }` entries (percent rounded to an integer), sorted by
-  topic name. No attempts gives `[]`.
-- `weakestTopics(mastery, count, minAnswered)` keeps topics with at least `minAnswered`
-  answers (default 3), orders them by percent ascending and then by topic name, and returns
-  the first `count` (default 3).
-- `currentStreak(attempts, now)` is the number of consecutive local calendar days with at
-  least one attempt, counted back from today. If there is no attempt today but there is one
-  yesterday, the streak still counts from yesterday; if the latest attempt is older, the
-  streak is 0. Several attempts on one day count once; input order does not matter.
+All functions are pure and work on one attempt log.
+- `masteryByTopic(attempts)` adds up every result per topic and returns `{ topic, correct, total,
+  percent }` entries (percent rounded), sorted by topic name. No attempts gives `[]`.
+- `weakestTopics(mastery, count = 3, minAnswered = 3)` keeps topics with at least `minAnswered`
+  answers, orders them by percent ascending and then by topic name, and returns the first `count`.
+- `currentStreak(attempts, now)` is the number of consecutive local calendar days with at least
+  one attempt, counted back from today; if there is none today but there is one yesterday, it
+  counts from yesterday; otherwise it is 0. Several attempts on one day count once.
 
 ### R14 Dashboard
-- `summarizeProgress(attempts, now)` returns `{ attemptCount, streak, mastery, weakest }`
-  built from the R13 functions (mastery from `masteryByTopic`, weakest from
-  `weakestTopics` with its defaults, streak from `currentStreak`).
-- The page `/dashboard` shows, for the active profile: the profile name, the number of
-  attempts, the current streak in days, the best score per level (R8, per profile after
-  R16), a bar per topic with "N of M correct (P%)", and the weakest topics.
-- With no attempts it shows "No attempts yet" and a link that starts a quiz instead of
-  empty charts. A topic list with fewer answers than the weakest-topic minimum shows
-  "Not enough answers yet" in place of the weakest list.
-- The header has a "Dashboard" link next to the site title.
+- `summarizeProgress(attempts, now)` returns `{ attemptCount, streak, mastery, weakest }` from the
+  R13 functions with their defaults.
+- `/dashboard` shows, for the active profile or the signed-in account: the name, the number of
+  attempts, the streak in days, the best score per level, a bar per topic with
+  "N of M correct (P%)", and the weakest topics.
+- With no attempts it shows "No attempts yet" and a link to start a quiz. Without enough answers
+  for the weakest list it shows "Not enough answers yet".
+- The header has "Dashboard" and "Logs" links next to the site title link "Java Trainer".
 
 ### R15 Logs and JSON export
-- `newestFirst(attempts)` returns a copy ordered by `at`, newest first; the input is not mutated.
-- `exportAttemptsJson(profileName, attempts, exportedAt)` returns JSON text indented by two
-  spaces for `{ profile, exportedAt, attempts }`, where `exportedAt` is an ISO 8601 UTC string
-  made from the given epoch milliseconds.
-- `exportFileName(profileName, exportedAt)` is `java-trainer-<slug>-<yyyy-mm-dd>.json`. The slug
-  is the lower-case name with every run of characters other than letters a-z and digits
-  replaced by one dash and with leading and trailing dashes removed; an empty slug becomes
-  `profile`. The date is the UTC date of `exportedAt`.
-- The page `/logs` lists the active profile's attempts newest first, each as local date and
-  time, level and "N of M correct (P%)". With no attempts it shows "No attempts yet". An
-  "Export JSON" button downloads the file named by `exportFileName`; with no attempts the button is
-  not shown at all.
-- The header has a "Logs" link next to "Dashboard".
+- `newestFirst(attempts)` returns a copy ordered by `at`, newest first.
+- `exportAttemptsJson(profileName, attempts, exportedAt)` returns JSON indented by two spaces for
+  `{ profile, exportedAt, attempts }`, where `exportedAt` is an ISO 8601 UTC string.
+- `exportFileName(profileName, exportedAt)` is `java-trainer-<slug>-<yyyy-mm-dd>.json`: the slug is
+  the lower-case name with every run of characters other than a-z and digits replaced by one dash
+  and leading and trailing dashes removed; an empty slug becomes `profile`; the date is the UTC
+  date.
+- `/logs` lists the attempts newest first (local date and time in the language's locale, level,
+  "N of M correct (P%)"). With no attempts it shows "No attempts yet" and no export button;
+  otherwise "Export JSON" downloads the file named by `exportFileName`.
 
 ### R16 Best score per profile and migration
-- Best scores are stored per profile under `profileKey("java-trainer-best", profileId)`. Saving
-  at the end of a quiz, the "Best: N%" label on the level cards (R8) and the dashboard (R14)
-  all use the active profile's scores.
-- `mergeBestScores(a, b)` returns a new object that holds, per level, the higher of the two
-  scores; a level present in only one of them is kept. Inputs are never mutated.
-- `mergeStoredBestScores(profileText, legacyText)` parses both texts with `parseBestScores`
-  (invalid or missing text counts as empty) and returns the JSON text of their merge.
-- Migration: scores stored under the old global key `java-trainer-best-scores` are merged
-  into the active profile's scores and the old key is then removed. It runs automatically
-  when the app loads, after the default profile exists, and only while the old key exists.
+- Guest best scores are stored per profile under `profileKey("java-trainer-best", profileId)`.
+- `mergeBestScores(a, b)` returns a new object with the higher score per level; a level present in
+  only one of them is kept.
+- `mergeStoredBestScores(profileText, legacyText)` parses both with `parseBestScores` and returns
+  the JSON text of their merge.
+- Migration: scores under the old global key `java-trainer-best-scores` are merged into the active
+  profile's scores when the app loads in guest mode (with the profile switcher), and the old key is
+  removed once the write is verified.
 
 ### R17 Language selection
-- The languages are `en` (English) and `uk` (Ukrainian). The language is one browser-wide
-  setting, not a per-profile one.
-- `detectLanguage(preferred)` takes the browser's preferred languages (for example
-  `navigator.languages`) and returns the language of the first entry whose primary subtag is
-  `uk` or `en` (case-insensitive, so `uk-UA` counts). With an empty list or no supported entry
-  it returns `en`.
-- `parseLanguage(raw)` returns `en` or `uk` for exactly that stored text and `null` for
-  anything else.
-- The choice is stored as plain text under `java-trainer-language`. On load the stored value is
-  used when `parseLanguage` accepts it, otherwise `detectLanguage` decides. If storage is blocked
-  the switcher still works until the page is reloaded.
-- The header has a language switcher next to the profile switcher: a select with the options
-  "English" and "Українська", each written in its own language, with a translated accessible
-  label. Changing it updates all text on the page at once without a reload and sets the `lang`
-  attribute of the page.
-- The first server-rendered HTML is English; the page switches to the stored or detected
-  language right after loading (a brief flash is accepted, KISS).
+- Languages are `en` (English, default) and `uk` (Ukrainian); the choice is browser-wide, not per
+  profile or account.
+- `detectLanguage(preferred)` returns the language of the first browser language whose primary
+  subtag is `uk` or `en` (case-insensitive); otherwise `en`.
+- `parseLanguage(raw)` returns `en` or `uk` for exactly that text and `null` otherwise.
+- The choice is stored under `java-trainer-language`; on load the stored value wins, otherwise
+  `detectLanguage(navigator.languages)` decides. With blocked storage the switcher still works
+  until reload.
+- The header has a language select ("English", "Українська") left of the account area. Changing it
+  updates all text at once and sets the page's `lang` attribute.
+- The server renders English; the page switches to the chosen language right after loading (a
+  brief flash is accepted).
 
 ### R18 Interface text
-- All interface text lives in one dictionary per language and is read through
-  `translate(language, key, params)`; `params` fill `{name}`-style placeholders. A missing key
-  falls back to the English text and then to the key itself; it never throws.
-- `plural(language, count, forms)` picks a form with `Intl.PluralRules`. English uses `one` and
-  `other`; Ukrainian uses `one`, `few`, `many` and `other` (1 and 21 are `one`, 2-4 and 22-24
-  are `few`, 5-20 and 25 are `many`). A missing form falls back to `other`.
-- Tests enforce that both dictionaries have exactly the same keys, that no value is empty, and
-  that each key uses the same set of placeholders in both languages.
-- Translated: the header and navigation, the home page and level descriptions, all quiz screens
-  (start, progress, feedback, buttons, score, mistakes review), the dashboard, the logs page,
-  the profile switcher (labels, placeholders, the removal confirmation and the messages for the
-  R10 error codes) and the storage notice. Dates on the logs page use the language's locale.
-  The level names stay `Junior`, `Middle` and `Senior` in both languages.
-- Deliberately not translated: the page title and description, the stock 404 page, the export
-  file name and JSON keys, and stored data (attempts keep English topic names and question ids).
+- All interface text lives in one dictionary per language (`messages.en.ts`, `messages.uk.ts`) and
+  is read through `translate(language, key, params)`; `{name}` placeholders are filled from
+  `params`. A missing key falls back to English and then to the key; it never throws.
+- `translatePlural` picks `key.one|few|many|other` with `Intl.PluralRules` (Ukrainian: 1 and 21 are
+  `one`, 2-4 and 22-24 `few`, 5-20 and 25 `many`), falling back to `other`.
+- The Ukrainian dictionary is typed by the English keys, so a missing key is a compile error;
+  tests check that no value is empty and that both languages use the same placeholders.
+- Everything the user sees is translated, including the account pages and every error code
+  (`errorMessageKey(code)` maps a code to its message, an unknown code to a generic message).
+  Level names stay `Junior`, `Middle`, `Senior`. Not translated: the page title, the stock 404
+  page, the export file name and JSON keys, and stored data.
 
-### R19 Question content
-- Every question has a Ukrainian translation `{ text, options (exactly 4), explanation }`, kept
-  by question id in a separate module. `code` is never translated, and Java identifiers, class
-  names and keywords stay in English inside the Ukrainian text.
+### R19 Question content in Ukrainian
+- Every question has a Ukrainian translation `{ text, options (4), explanation }` in
+  `questions.uk.ts`, keyed by id. `code` is never translated; Java identifiers stay in English.
 - Topics are shown through a topic dictionary per language; a topic without an entry is shown as
   stored.
 - `localizeQuestion(question, language)` returns the question unchanged for `en` and with the
-  translated `text`, `options` and `explanation` for `uk`. The option order and `correctIndex`
-  stay the same, so the right answer stays right. A question id without a translation falls back
-  to English.
-- `getQuestions(level)` stays English. A quiz localizes its questions to the current language
-  before shuffling (R7) when it starts or restarts. Changing the language during a running quiz
-  updates the interface text at once, but the running quiz keeps its question language until
-  Start or Try again; the mistakes review uses the language the quiz was started in.
-- Tests enforce that every English question id has a translation and no translation has an
-  unknown id; that each translation has exactly 4 non-empty options and a non-empty text and
-  explanation; that the R2 option-length rule (longest at most twice the shortest) holds for the
-  Ukrainian options; and that every topic in the bank has a Ukrainian label.
-- The no-tell rules of R2 hold for the Ukrainian options too: per level, the correct option is
-  the strictly longest in 10% to 30% of the questions and the strictly shortest in 10% to 30%,
-  so the length of an answer gives nothing away in either language.
-- The Ukrainian text is written by the agent and counts as final only after the author has
-  reviewed it.
+  translated text, options and explanation for `uk`; option order and `correctIndex` stay the
+  same; a missing translation falls back to English.
+- A quiz localizes its questions before shuffling when it starts; changing the language during a
+  quiz changes the interface text but not the running questions.
+- Tests check that translations exist for exactly the bank's ids, are complete, follow the R2
+  length rule, and keep the R2 no-tell bounds for the longest and shortest options.
+- The Ukrainian text was written by the agent and reviewed by another agent; it counts as final
+  after the author's review.
 
 ### R20 Accounts and storage
-- An account has `id`, `email` (unique, stored trimmed and lower-case), `displayName`
-  (1 to 24 characters), a password hash and `createdAt`. Per account the server keeps the best
-  score per level and an attempt log in the R12 format, capped at 200.
-- The database is a SQLite file, `data/app.sqlite` by default, overridable with the
-  `DATABASE_FILE` environment variable; tests use `:memory:`. The schema is created on first
-  use and the `data/` folder is git-ignored. Every statement is parameterized.
+- An account has `id`, `email` (unique, trimmed and lower-case), `displayName` (1 to 24 characters),
+  a password hash and `createdAt`. Per account the server keeps the best score per level and an
+  attempt log in the R12 format, capped at 200.
+- The database is a SQLite file, `data/app.sqlite` by default, overridable with `DATABASE_FILE`;
+  tests use `:memory:`. The folder and schema are created on first use, foreign keys are on, and
+  `data/` is git-ignored. Every statement is parameterized; multi-step writes run in a transaction.
+- Tables: `users`, `sessions` (token hash, user, expiry), `best_scores` (user, level, percent),
+  `attempts` (user, `at`, JSON data) and `login_failures` (email, count, window start); deleting a
+  user cascades to its sessions, scores and attempts.
 
 ### R21 Input validation
-Pure functions return a code, never a message (messages come from the dictionary, R18):
-- `validateEmail(raw)` trims and lower-cases; it is valid with 3 to 254 characters, exactly one
-  `@`, a non-empty local part, a domain containing a dot that does not start or end with it, and
-  no whitespace. Otherwise `email-invalid`.
-- `validatePassword(raw)` accepts 10 to 128 characters (`password-short`, `password-long`) and
-  rejects a short built-in list of very common passwords, compared in lower case
-  (`password-common`).
+Pure functions return a code, never a message:
+- `validateEmail(raw)` trims and lower-cases; valid with 3 to 254 characters, no whitespace,
+  exactly one `@`, a non-empty local part and a domain that contains a dot not at its start or end.
+  Otherwise `email-invalid`.
+- `validatePassword(raw)`: 10 to 128 characters (`password-short`, `password-long`) and not in a
+  built-in list of very common passwords, compared in lower case (`password-common`).
 - `validateDisplayName(raw)` trims; 1 to 24 characters (`name-empty`, `name-too-long`).
 
 ### R22 Password hashing
-`hashPassword(password)` returns `scrypt$16384$8$1$<salt>$<hash>` with a random 16-byte salt and a
-64-byte key. `verifyPassword(password, stored)` compares in constant time and returns `false`
-for a wrong password or a malformed stored value; it never throws. Passwords are never stored,
-returned or logged in clear text.
+`hashPassword(password)` returns `scrypt$16384$8$1$<salt>$<hash>` (base64url) with a random 16-byte
+salt and a 64-byte key. `verifyPassword(password, stored)` compares in constant time, accepts only
+bounded scrypt parameters, and returns `false` for a wrong password or a malformed stored value; it
+never throws. Passwords are never stored, returned or logged in clear text.
 
 ### R23 Sessions
-- `createSession(db, userId, now)` returns a random 32-byte token (base64url). Only the SHA-256
-  hash of the token is stored, with the user id and an expiry 30 days after `now`.
+- `createSession(db, userId, now)` returns a random 32-byte token (base64url); only its SHA-256 hash
+  is stored, with the user id and an expiry 30 days after `now`. Creating a session deletes every
+  expired session and the user's oldest sessions beyond 10.
 - `getSessionUser(db, token, now)` returns the user for a known, unexpired token and `null`
-  otherwise; an expired session is deleted when it is found.
+  otherwise; an expired session is deleted when found.
 - `deleteSession(db, token)` and `deleteUserSessions(db, userId, exceptToken?)` remove sessions.
-- The session cookie is named `session` with `HttpOnly`, `SameSite=Lax`, `Path=/`, a Max-Age of
-  30 days, and `Secure` in production. Logging out clears it.
-- A user keeps at most 10 sessions: creating one deletes the user's oldest ones beyond that, and
-  also deletes every expired session.
+- The cookie is `session` with `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age` 30 days, and `Secure`
+  in production; logging out or deleting the account clears it with `Max-Age=0`.
 
 ### R24 Authentication service
-- `register({ email, password, displayName })` returns a validation code, `email-taken`,
-  `too-many-registrations` (30 or more accounts were created in the last hour by anyone; checked
-  before any hashing) or the new user plus a session token.
-- `login({ email, password })` creates a new session. A wrong password and an unknown email give
-  the same `invalid-credentials` (a dummy hash is verified for an unknown email so the timing is
-  similar). A malformed email gets the same `invalid-credentials` after the dummy hash and is not
-  counted by the throttle, because no account can have such an email. After 5 failed logins for an email within 15 minutes the account is locked for the
-  rest of that window and returns `too-many-attempts`, even for the correct password; a
-  successful login resets the counter.
-- `changePassword(userId, current, next, currentToken)` needs the current password
-  (`invalid-credentials`), validates the new one, stores a new hash and deletes every other
-  session of that user.
-- `updateDisplayName(userId, name)` validates like R21.
-- `deleteAccount(userId, password)` needs the password and deletes the user together with its
-  sessions, best scores and attempts.
-- No result other than `email-taken` at registration reveals whether an email exists.
+- `register({ email, password, displayName })` validates (R21), refuses with
+  `too-many-registrations` when 30 or more existing accounts were created in the last hour (checked
+  before any hashing), hashes the password, and in one transaction creates the user (or answers
+  `email-taken`) and a session.
+- `login({ email, password })`: a malformed email gets `invalid-credentials` after a dummy hash and
+  is not counted. Otherwise, when the normalized email has 5 failures within 15 minutes, the answer
+  is `too-many-attempts`, even for the right password. A wrong password and an unknown email are
+  both counted and give the same `invalid-credentials` (a dummy hash keeps the timing similar). A
+  success clears the counter and creates a session. Every new failure also deletes expired failure
+  rows of all emails.
+- `changePassword(userId, current, next, currentToken)` and `deleteAccount(userId, password)` need
+  the current password and use the same counter. A password change validates the new password and,
+  in one transaction, stores the new hash and deletes every other session of the user. Deleting
+  the account removes the user with its sessions, scores and attempts.
+- `changeDisplayName(userId, name)` validates like R21 and returns the updated user.
+- Only `email-taken` at registration reveals whether an email exists.
 
 ### R25 Account data
-- `getData(userId)` returns `{ best, attempts }` with the attempts oldest first.
-- `recordAttempt(userId, attempt)` validates the attempt with the R12 rules, appends it, keeps
-  the newest 200 and raises the best score of its level to the maximum.
-- `importData(userId, { best, attempts })` merges: the best score per level is the maximum
-  (R16), attempts are added, de-duplicated by `at`, sorted by `at` and capped to the newest 200.
-  Invalid entries are dropped and at most 200 attempts are read.
-- Every call is scoped by the user id taken from the session, never from the request body.
-- Known limit: users are not capped and registration has no rate limit (no per-IP limiting, see
-  "Out of scope"). An attempt must agree with its own results (R12), but a client can still
-  invent the answers themselves, so scores of one account are not proof of anything.
+- `getData(userId)` returns `{ best, attempts }`, attempts oldest first (by `at`, then insertion).
+- `recordAttempt(userId, attempt)` validates with the R12 rules (`attempt-invalid` otherwise) and,
+  in one transaction, inserts it, raises the level's best score and keeps the newest 200.
+- `importData(userId, { best, attempts })` reads at most 200 incoming attempts, drops invalid ones,
+  merges them with the stored ones (de-duplicated by `at`, the stored one wins), sorts by `at`, keeps
+  the newest 200 and raises the best scores to the per-level maximum, in one transaction.
+- Every call uses the user id from the session, never from the request body.
 
 ### R26 HTTP API
-JSON under `/api`, all dynamic:
-- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`,
-  `GET /api/auth/me`, `PATCH /api/auth/me` (display name), `POST /api/auth/password`,
-  `DELETE /api/auth/me` (body: the password).
-- `GET /api/data`, `POST /api/data/attempts`, `POST /api/data/import`.
-- `GET /api/auth/me` without a valid session answers 200 `{ "user": null }` (a guest is not an
-  error and must not show a failed request in the console); every other endpoint that needs a
-  session answers 401 `not-signed-in`.
-- Status codes: 200 or 201 on success, 400 with `{ "error": <code> }` for validation errors, 401
-  for "not signed in" or `invalid-credentials`, 409 `email-taken`, 429 `too-many-attempts` or `too-many-registrations`,
-  403 `forbidden-origin`, 413 `body-too-large`, 415 `json-required`.
-- A request that changes state (anything but GET) must have an `Origin` header whose host
-  equals the request's `Host`, otherwise 403 `forbidden-origin`. Bodies must be JSON of at most
-  100 kB. A non-empty body that is not a JSON object answers 400 `body-invalid`; an empty body
-  counts as `{}` and needs no content type. Unknown paths answer 404 `not-found`, known paths
-  with another method 405 `method-not-allowed`. Request bodies use `{ email, password,
-  displayName }` (register), `{ email, password }` (login), `{ displayName }` (PATCH me),
-  `{ current, next }` (password), `{ password }` (DELETE me), an attempt object (attempts) and
-  `{ best, attempts }` (import). Success bodies: `{ user }` for register, login and me, `{ ok:
-  true }` for logout, password change and delete, `{ best, attempts }` for data and import.
-- Responses never contain a password hash or a session token (the token only travels in the
-  `Set-Cookie` header). Error bodies contain codes only, never stack traces. Passwords and tokens
-  are never written to logs.
+JSON under `/api`, handled by one route file (`src/app/api/[...path]/route.ts`) that delegates to
+`handleApi` in `src/server/api.ts`.
 
-### R27 Account interface
-- The header keeps the language switcher. In guest mode it shows the profile switcher plus the
-  links "Sign in" and "Create account". When signed in it shows the display name, an "Account"
-  link and a "Sign out" button instead of the profile switcher.
-- Pages: `/login`, `/register` and `/account` (change display name, change password, import this
-  browser's progress, delete account). `/account` redirects a signed-out visitor to `/login`;
-  `/login` and `/register` redirect a signed-in visitor to `/account`.
-- Forms show the translated message for each error code, disable the submit button while a
-  request runs and never show or keep the password after sending. Password fields use the
-  `current-password` and `new-password` autocomplete values.
-- While signed in, a finished quiz is recorded on the server (R25) instead of in local storage;
-  the dashboard, the logs page, the best-score labels and the JSON export read the server data.
-- After signing in or registering in a browser that has guest progress, the account page offers
-  "Import progress from this browser" for the active guest profile. Importing copies the data
-  (R25) and does not delete the local data.
-- If saving a finished quiz to the server fails, or the session has not finished loading, the
-  result is saved to the active guest profile instead (R12, R16), so it is not lost. It then
-  belongs to that profile and is not in the account until imported. `record` reports where the
-  result went (`account` or `device`); when a signed-in user's result went to the device, the score
-  screen shows the message `quiz.savedOnDevice`.
+| Method and path | Needs session | Body | Success | Errors |
+|---|---|---|---|---|
+| POST `/api/auth/register` | no | `{email, password, displayName}` | 201 `{user}` + cookie | 400 code, 409 `email-taken`, 429 `too-many-registrations` |
+| POST `/api/auth/login` | no | `{email, password}` | 200 `{user}` + cookie | 401 `invalid-credentials`, 429 `too-many-attempts` |
+| POST `/api/auth/logout` | no | none | 200 `{ok: true}` + cleared cookie | none |
+| GET `/api/auth/me` | no | none | 200 `{user}`, or `{user: null}` for a guest | none |
+| PATCH `/api/auth/me` | yes | `{displayName}` | 200 `{user}` | 400 code, 401 |
+| DELETE `/api/auth/me` | yes | `{password}` | 200 `{ok: true}` + cleared cookie | 401, 429 |
+| POST `/api/auth/password` | yes | `{current, next}` | 200 `{ok: true}` | 400 code, 401, 429 |
+| GET `/api/data` | yes | none | 200 `{best, attempts}` | 401 `not-signed-in` |
+| POST `/api/data/attempts` | yes | an attempt | 200 `{ok: true}` | 400 `attempt-invalid`, 401 |
+| POST `/api/data/import` | yes | `{best, attempts}` | 200 `{best, attempts}` | 401 |
+
+- Order of checks: an unknown path answers 404 `not-found`; a known path with another method 405
+  `method-not-allowed` (only the handler's own properties count). For anything but GET the
+  `Origin` header must be present and its host must equal `Host` (else 403 `forbidden-origin`).
+  The body may have at most 100 000 bytes (413 `body-too-large`, enforced while reading and from
+  `Content-Length`); a non-empty body must be `application/json` (415 `json-required`) and a JSON
+  object (400 `body-invalid`); an empty body counts as `{}`. Any exception inside the handler
+  answers 500 `internal`.
+- Responses carry `Cache-Control: no-store`. Bodies never contain a password hash or a token (the
+  token only travels in `Set-Cookie`); error bodies are `{ "error": code }` only. Nothing is logged.
+
+### R27 Account interface and data source
+- `AccountProvider` loads `/api/auth/me` and then `/api/data` on start; the session is `loading`,
+  `guest` or `signedIn`. Any action answered with `not-signed-in` reloads the session, so a session
+  ended elsewhere turns the page into guest mode.
+- `callApi` sends JSON with same-origin credentials and returns `{ok, data}` or `{ok: false, error}`;
+  a response that is not JSON, has no error code, or a network failure gives `network-error`.
+- Header: nothing while loading; a guest sees the profile switcher, "Sign in" and "Create account";
+  a signed-in user sees the display name, "Account" and "Sign out".
+- Pages `/login`, `/register` and `/account`. `/account` sends a guest to `/login`; `/login` and
+  `/register` send a signed-in user to `/account`. Forms disable the submit button while sending,
+  clear password fields after sending, use the `email`, `current-password` and `new-password`
+  autocomplete values, and show the translated message of each error code; on the account page a
+  wrong current password reads "Wrong password." instead of the login message.
+- The account page lets the user change the display name, change the password, import the active
+  guest profile's best scores and attempts ("Import progress from this browser"; the local data
+  stays) and delete the account (a browser confirmation, then the password).
+- `useProgress()` returns `{ name, attempts, best }` from the account when signed in, otherwise from
+  the active guest profile, and `null` while loading or without a profile. The dashboard, logs,
+  best-score labels and the export use it.
+- `record(attempt)` saves a finished quiz to the server when signed in and returns `account`. When
+  the user is a guest, the session is still loading, or the server save fails, it saves to the
+  active guest profile and returns `device`; for a signed-in user the score screen then shows
+  "Your account could not be reached, so this result was saved on this device only."
 
 ### R28 Security properties
 - No SQL is assembled from user input.
 - Tokens are random, stored only as hashes, and the cookie is not readable from JavaScript.
-- Login throttling and uniform error results follow R24.
-- No account can read or change another account's data (R25 scoping).
-- Instead of CSRF tokens the API relies on `SameSite=Lax`, the `Origin` check and JSON-only
-  bodies (R26).
+- Login throttling, the registration limit and uniform error results follow R24.
+- No account can read or change another account's data (R25).
+- Instead of CSRF tokens the API relies on `SameSite=Lax`, the `Origin` check and JSON-only bodies
+  (R26).
+
+## Known limits
+- A failed login is counted per email, so anyone can lock a known email out for 15 minutes.
+- There is no per-IP rate limit; the registration limit is global and counts accounts that still
+  exist; scrypt runs synchronously.
+- Users are not capped; SQLite is one file for one server process (not serverless as is).
+- A client can invent the answers of its own attempts (only the numbers must agree).
+- A running quiz in a tab survives signing in or out in that tab.
+- The first render is English before the stored or detected language is applied.
+
+## Development rules
+- Commands: `npm run dev`, `npm run build`, `npm start`, and `npm run check` (lint, `tsc --noEmit`,
+  `vitest run`), which must pass before every commit. The pre-commit hook
+  (`.githooks/pre-commit`, enabled with `git config core.hooksPath submissions/ivan-mykhalevych/.githooks`)
+  runs it for commits that touch the app; `RED_COMMIT=1` skips it only for a test-first commit whose
+  tests fail; `--no-verify` is never used.
+- Tests: `src/lib/**.test.ts` and `src/server/**.test.ts`; server tests use an in-memory database.
+  Interface behaviour without unit tests is checked in the browser and by independent QA runs
+  (`docs/qa-plan.md`).
 
 ## Acceptance scenarios
-- Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is
-  correct 1, total 3, percent 33.
+- Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the score is correct 1,
+  total 3, percent 33, and the mistakes are question 2 (chosen 2) and question 3 (chosen null).
 - Given an empty list, percent is 0.
 - Given a bank question whose options are 5 and 50 characters long, the bank test fails.
 - Given level `senior`, only senior questions are returned.
-- Given the email "  Ann@Example.COM ", the normalized email is `ann@example.com`; given
-  `no-at`, the code is `email-invalid`; given a 9-character password, `password-short`.
-- Given a hash made by `hashPassword("correct horse battery")`, `verifyPassword` is true for
-  that password, false for another one and false for a tampered or malformed stored value.
-- Given a session created at time t, the user is found at t plus 29 days and not at t plus
-  31 days, and the expired session is gone.
+- Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12 for
+  the same seed; given a pool of 5, it returns all 5.
+- Given any seeded rng, a shuffled question keeps the same option texts and its `correctIndex`
+  still points at the original correct text.
+- Given a quiz answered up to question 4 and a reload, the quiz continues at question 4; given a
+  stored value `{broken`, the start screen appears and the value is deleted.
+- Given stored text `{"junior":80,"bogus":50,"middle":"x"}`, the parsed scores are `{ junior: 80 }`;
+  given `not json`, they are `{}`.
+- Given `{ junior: 80 }`, recording 60 for junior keeps 80, recording 90 gives 90, and the original
+  object is unchanged.
+- Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the first
+  profile becomes active. Given a 25-character name, `validateProfileName` returns an error; given
+  " Bob ", it returns "Bob". Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
+- Given 200 logged attempts, appending one keeps 200 and drops the oldest. Given an attempt whose
+  `percent` disagrees with its results, it is dropped.
+- Given results Strings 1 of 3 correct and OOP 2 of 2 correct, the mastery is OOP 100 and Strings
+  33, and the weakest topic with at least 3 answers is Strings.
+- Given attempts today, yesterday and the day before, the streak is 3; today and two days ago only,
+  1; only two days ago, 0.
+- Given the name "Ann Lee" exported on 2026-09-30, the file name is
+  `java-trainer-ann-lee-2026-09-30.json`; given "!!!" it is `java-trainer-profile-2026-09-30.json`.
+- Given the old key `{"junior":80}` and a profile holding `{"junior":90,"middle":10}`, after migration
+  the profile holds `{"junior":90,"middle":10}` and the old key is gone.
+- Given preferred languages `["ru", "uk-UA"]`, `detectLanguage` returns `uk`; `["en-US", "uk"]`
+  gives `en`; `[]` or `["fr"]` gives `en`. Given stored text `xx`, `parseLanguage` returns `null`.
+- Given Ukrainian, plural forms give "спроба" for 1 and 21, "спроби" for 2 and 23, and "спроб" for
+  5, 11 and 25.
+- Given Ukrainian and a started quiz, the question text and options are Ukrainian, the code block is
+  unchanged, and the originally correct option is still marked correct.
+- Given the email "  Ann@Example.COM ", the normalized email is `ann@example.com`; given `no-at`,
+  `email-invalid`; given a 9-character password, `password-short`.
+- Given a hash of "correct horse battery", `verifyPassword` is true for it, false for another
+  password and false for a tampered or malformed stored value.
+- Given a session created at time t, the user is found at t + 29 days and not at t + 31 days, and
+  the expired session is gone. Given 11 sessions of one user, only the newest 10 remain.
 - Given 5 wrong passwords and then the correct one within 15 minutes, the result is
   `too-many-attempts`; after 15 minutes the correct password works.
+- Given 30 accounts created within the last hour, the next registration answers 429
+  `too-many-registrations`; an hour later it works, and login is never affected.
 - Given accounts A and B, B cannot read or change A's data, and deleting A removes all of it.
-- Given a POST without a matching `Origin` header, the API answers 403 `forbidden-origin`.
-- Given a pool of 40 questions, `pickQuiz` returns 12 distinct questions from it, the same 12
-  for the same seed; given a pool of 5, it returns all 5.
-- Given any level, the correct option is the strictly longest option in 10% to 30% of its
-  questions.
-- Given preferred languages `["ru", "uk-UA"]`, `detectLanguage` returns `uk`; given
-  `["en-US", "uk"]` it returns `en`; given `[]` or `["fr"]` it returns `en`.
-- Given stored language text `xx`, `parseLanguage` returns `null` and the browser language
-  decides.
-- Given Ukrainian, `plural("uk", n, { one: "спроба", few: "спроби", many: "спроб", other: "спроби" })`
-  gives "спроба" for 1 and 21, "спроби" for 2 and 23, and "спроб" for 5, 11 and 25.
-- Given Ukrainian is selected and a quiz is started, the question text and options are
-  Ukrainian, the code block is unchanged, and choosing the option that was correct in English
-  (now translated) is still marked correct.
-- Given a profile name that is already used, the add form shows the Ukrainian message for the
-  `duplicate` code when Ukrainian is selected.
-- Given stored profiles `Ann` and `ann`, only `Ann` is kept; given an unknown `activeId`, the
-  first profile becomes active.
-- Given 200 logged attempts, appending one keeps 200 and drops the oldest.
-- Given 3 questions with correct indexes 0,1,2 and answers [0, 2, null], the attempt has
-  correct 1, total 3, percent 33 and results flagged true, false, false.
-- Given results Strings 1 of 3 correct and OOP 2 of 2 correct, the mastery is OOP 100 and
-  Strings 33, and the weakest topic with at least 3 answers is Strings.
-- Given attempts today, yesterday and the day before, the streak is 3; given attempts today
-  and two days ago only, it is 1; given only an attempt two days ago, it is 0.
-- Given no attempts, the summary is 0 attempts, streak 0, no mastery and no weakest topics;
-  the dashboard then shows "No attempts yet".
-- Given the name "Ann Lee" exported on 2026-09-30, the file name is
-  `java-trainer-ann-lee-2026-09-30.json`; given the name "!!!" it is
-  `java-trainer-profile-2026-09-30.json`.
-- Given the old key `{"junior":80}` and a profile holding `{"junior":90,"middle":10}`, after
-  migration the profile holds `{"junior":90,"middle":10}` and the old key is gone; given a
-  profile with no scores, it holds `{"junior":80}`.
-- Given two profiles, finishing a quiz as the first leaves the second profile's card without
-  a "Best" label.
-- Given profile id `p1`, the attempt-log key is `java-trainer-attempts:p1`.
-- Given a serialized state, `parseProfiles` returns the same state.
-- Given a 25-character name, `validateProfileName` returns an error; given " Bob ", it
-  returns the name "Bob".
-- Given each level, at least one of its questions has a non-empty code snippet.
-- Given stored text `{"junior":80,"bogus":50,"middle":"x"}`, the parsed scores are
-  `{ junior: 80 }`; given `not json`, they are `{}`.
-- Given `{ junior: 80 }`, recording 60 for junior keeps 80, recording 90 gives 90, and the
-  original object is unchanged.
-- Given questions with correct indexes 0,1,2 and answers [0, 2, null], the mistakes are
-  question 2 (chosen 2) and question 3 (chosen null).
-- Given any seeded rng, a shuffled question keeps the same option texts and its
-  `correctIndex` still points at the original correct text.
+- Given a POST without a matching `Origin` header, the API answers 403 `forbidden-origin`; given a
+  guest, `GET /api/auth/me` answers 200 `{ "user": null }`.
 
 ## Out of scope
-Spaced repetition, flashcards, languages other than English and Ukrainian, a translated page
-title or 404 page, right-to-left layouts. For accounts: email verification, password reset by
-email, two-factor authentication, social login, roles or an admin area, rate limiting by IP,
-and multi-server deployment (SQLite is a single-node database).
+Spaced repetition, flashcards, timers, languages other than English and Ukrainian, a translated
+page title or 404 page, right-to-left layouts. For accounts: email verification, password reset by
+email, two-factor authentication, social login, roles or an admin area, rate limiting by IP, and
+multi-server deployment.
 
 ## Spec changes
-- v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request. "English only" and "Ukrainian UI" are removed from the scope and out-of-scope lists. R10 now returns error codes (`empty`, `too-long`, `duplicate`, `too-many`) instead of English message strings so that messages can be translated; R11 refers to translated messages.
-- v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 are written down before the API is coded.
+- v1.0 (2 October 2026, by the author's decision): the spec was rewritten from the code so that both
+  agree, and it becomes the single source of truth again: changes go spec first, then a failing
+  test, then code. `docs/reference.md` (the code-derived description used on 1 October) was merged
+  into this file and removed. Content that only the code had stated is now written here: the
+  dropped invalid stored quiz, session housekeeping, transactions, the 500 answer, `Cache-Control`,
+  the home page fitting a laptop viewport, the account page's wrong-password message and the
+  session reload on `not-signed-in`. The stale R25 note "registration has no rate limit" and the
+  R24 function name `updateDisplayName` (the service function is `changeDisplayName`) were
+  corrected.
 - v0.23 (plan `docs/plan-gap-fixes.md`): R3 keeps a running quiz in `sessionStorage`, R24 and R26 add a global registration limit (429 `too-many-registrations`), R26 makes `GET /api/auth/me` answer 200 `{user: null}` for guests, R27 tells the user when a result was saved on the device only.
-- v0.22 (gap fixes): an attempt must agree with its results (R12, applies to guest and account data) and a user keeps at most 10 sessions (R23); the "forged scores" and "unbounded sessions" limits of v0.21 shrink accordingly.
-- v0.21 (as-built gaps, from the reverse-engineered description, now merged into `docs/reference.md`): R3, R24, R25 and R27 now state five behaviours the code already had: a running quiz is not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions are known limits, and a failed server save falls back to the guest profile.
+- v0.22 (gap fixes): an attempt must agree with its results (R12, applies to guest and account data) and a user keeps at most 10 sessions (R23).
+- v0.21 (as-built gaps from a reverse-engineered description of the code): R3, R24, R25 and R27 state five behaviours the code already had: a running quiz was not persisted, malformed login emails are not throttled, forged own scores and unbounded users and sessions were known limits, and a failed server save falls back to the guest profile.
 - v0.20 (review and QA fixes): the body limit is enforced while reading, handler errors answer 500 `internal`, expired failure rows and sessions are purged, an attempt holds at most 100 results, and wrong current passwords show their own message.
-- v0.18 (accounts, by the author's request): adds real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. "No authentication" is replaced by two modes; "authentication or passwords" and "cloud sync" leave the out-of-scope list, and email-based flows, 2FA, social login and multi-server hosting stay out of scope. Developed on the branch `feature/accounts`.
-- v0.17 (QA of the language release): R11 extends the no-horizontal-overflow rule to every page that shows the profile name, after the QA agent found the empty dashboard and logs overflowing at 375 px with a 24-character name. Ukrainian wording was corrected after a language review (Thread vs Stream, grammar, terminology).
-- v0.16 (Ukrainian questions): R19 also applies the length no-tell bounds of R2 to the Ukrainian options.
-- v0.15 (question pool): the bank grows from 12 to at least 40 questions per level and a quiz draws 12 at random (`pickQuiz`), because a 12-question set can be memorised; R2 gains statistical no-tell rules (longest and shortest within 10%-30%, answer position within 15%-35%) instead of relying on authors' discipline; the lower bounds were added after the first rewrite showed the opposite tell (the correct answer was almost never the longest). Applies before the Ukrainian translation (R19) so it is translated once.
-- v0.13 (test-and-fix pass): R11 gains the blocked-storage rule (found by testing with a throwing `localStorage`: the dashboard and logs showed "Loading your profile..." forever); the light theme got an `on-accent` token after a contrast audit (docs/design.md).
-- v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header after the QA agent found an overflow with a 24-character profile name at 375 px.
-- v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text, from the reviewer's data-loss findings; tests for the storage layer were added after the fact.
-- v0.10 (slice 7): R16 moves best scores to per-profile keys and migrates the old global key; R8 text updated accordingly.
-- v0.9 (slice 6): R15 adds /logs, newest-first ordering and the JSON export with a safe file name. Corrected after browser verification: the Export button is absent, not disabled, when there are no attempts.
-- v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link; it keeps reading best scores from the R8 store until R16.
+- v0.19 (R26 detail): request and response shapes, `body-invalid`, 404 and 405 written down before the API was coded.
+- v0.18 (accounts, by the author's request): real accounts with a server (R20-R28) next to the guest mode, built on Node's built-in SQLite and scrypt. Email-based flows, 2FA, social login and multi-server hosting stay out of scope.
+- v0.17 (QA of the language release): the no-horizontal-overflow rule extends to every page that shows the profile name; Ukrainian wording corrected after a language review.
+- v0.16 (Ukrainian questions): R19 applies the length no-tell bounds of R2 to the Ukrainian options.
+- v0.15 (question pool): the bank grows from 12 to 40 questions per level and a quiz draws 12 at random, because a fixed set can be memorised; R2 gains statistical no-tell rules, with lower bounds added after the first rewrite showed the opposite tell.
+- v0.14 (language support): English and Ukrainian with a language switcher (R17-R19), by the author's request; R10 returns error codes instead of English messages.
+- v0.13 (test-and-fix pass): R11 gains the blocked-storage rule; the light theme got an `on-accent` token after a contrast audit (`docs/design.md`).
+- v0.12 (final QA run): R11 gains the no-horizontal-overflow rule for the header.
+- v0.11 (review fixes): R11 gains safe profile removal and a backup of unreadable profile text.
+- v0.10 (slice 7): R16 moves best scores to per-profile keys and migrates the old global key.
+- v0.9 (slice 6): R15 adds /logs and the JSON export; the Export button is absent, not disabled, without attempts.
+- v0.8 (slice 5): R14 adds the /dashboard page and a Dashboard header link.
 - v0.7 (slice 4): R13 adds progress logic (mastery per topic, weakest topics, streak).
 - v0.6 (slice 3): R12 adds the per-profile attempt log, capped at 200 entries.
 - v0.5 (slice 2): R11 adds the header profile switcher and the per-profile storage key format.
-- v0.4 (slice 1): "no login" becomes "no authentication": local named profiles without passwords (R10). The dashboard is no longer out of scope (added in later slices).
-- v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, both from
-  findings of the independent QA run (`docs/qa-plan.md`).
-- v0.2: "no persistence" relaxed to allow best scores per level in localStorage (R8), by the author's decision (improvement step 1).
+- v0.4 (slice 1): local named profiles without passwords (R10).
+- v0.3: R5 gains a keyboard-focus rule and R6 shows the code snippet in the review, from the independent QA run.
+- v0.2: best scores per level in localStorage (R8), by the author's decision.
+- v0.1: first version, written before the application code.

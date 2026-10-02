@@ -105,8 +105,8 @@ git-ignored. To start with an empty database, stop the server and delete the fil
 
 The project is a capstone of the Agentic Engineering course and was built with Claude Code:
 
-- **One source of truth:** the code. `docs/reference.md` describes it, derived from the code.
-  `docs/spec.md` is the history of the requirements (R1 to R28) that were written before the code.
+- **One source of truth:** the specification, `docs/spec.md` (R1 to R28). It was rewritten from the
+  code so both agree; every change now starts in the spec, then a failing test, then the code.
 - **Tests first:** each slice has a failing-test commit followed by a passing one. A pre-commit hook
   runs `npm run check`. Enable it once per clone:
   `git config core.hooksPath submissions/ivan-mykhalevych/.githooks`
@@ -119,8 +119,7 @@ The project is a capstone of the Agentic Engineering course and was built with C
 
 | File | What is in it |
 |---|---|
-| `docs/reference.md` | What the code does, section by section (the documentation to read) |
-| `docs/spec.md` | The original requirements and their change log (history, not authority) |
+| `docs/spec.md` | The specification: every requirement, known limits and the change log (single source of truth) |
 | `docs/design.md` | Design rules and rationale (colour values are in `src/app/globals.css`) |
 | `docs/qa-plan.md` | Reviews, QA runs, findings and decisions |
 | `docs/capstone-dod.md` | The course assignment and the Definition of Done with proof |
@@ -134,5 +133,5 @@ src/app          pages (home, quiz, dashboard, logs, login, register, account) a
 src/components   interface components
 src/lib          quiz logic, question bank, translations, local storage, client code for accounts
 src/server       accounts: passwords, sessions, database, data and the HTTP handler
-docs             reference (derived from the code), history, plans and reports
+docs             specification, design rules, plans and reports
 ```
