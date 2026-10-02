@@ -1,5 +1,5 @@
 <!-- DRAFT of the Pull Request description. Paste into the PR after the branch is pushed.
-     Replace the TODO markers (video link, your own notes) before submitting.
+     Replace the remaining TODO marker (your own notes) before submitting.
      Commit links only resolve after the branch is pushed to the fork. -->
 
 > Commit hashes below refer to the unsquashed history, kept in the git tag `full-history` (every red
@@ -18,7 +18,7 @@ A small **Java interview trainer** (Next.js + TypeScript + Vitest): pick a level
 
 ## Відео-демо / Video demo (1–2 min)
 
-**Link:** TODO — paste a link that opens without login.
+**Link:** https://youtu.be/N_428fi8u04
 
 ## Practices applied, each with proof
 
