@@ -94,10 +94,15 @@ Choose the practices that fit; each ticked one needs proof, never just a name.
       `c55fbca` without asking): the hook skips the check only when `RED_COMMIT=1` is set,
       and `AGENTS.md` forbids `--no-verify`. Verified: a failing staged test gives hook exit 1
       without the variable and exit 0 with it.
-- [x] **Loops.** One recorded review-fix loop: reviewer report -> fixes -> gate
-      `npm run check` (lint + typecheck + tests), max 3 iterations. Result: converged in
-      **1 iteration**, gate green (28/28 tests), committed as `bc0c207`. It is a small loop;
-      a larger one was not needed (KISS).
+- [x] **Loops.** Scripted loop `scripts/review-loop.sh` (`npm run loop -- <paths>`, `9d676e0`,
+      rules in `docs/spec.md` "Development rules"): gate `npm run check` -> read-only reviewer
+      (`.claude/agents/reviewer.md`) -> separate fixer agent, until the gate is green and the
+      reviewer reports no high or medium findings, at most `MAX_ITER` (3) fix passes; every
+      iteration is appended to `docs/loop-log.md`. Run on `src/server` (2026-10-09): iteration 1
+      found a medium R26 bug (413 answered before 404/405), the fixer added a route test and the
+      fix; iteration 2 PASS, gate 296/296; stopped "converged after 1 fix pass", committed as
+      `db4cb3f` after my review. The first attempt aborted on an expired CLI login, so the
+      script now stops when an agent call fails. Earlier manual loop: `bc0c207`.
 - [x] **maker != checker.** Reviewer definition: `.claude/agents/reviewer.md` (`b47bbf8`,
       read-only tools, told to report only real findings). Run once on 2026-09-30, about
       74k subagent tokens. Honest note: the new agent file is only discovered at session
