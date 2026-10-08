@@ -26,7 +26,8 @@ while :; do
   echo "== iteration $i: review ($SCOPE)"
   echo "Review these paths: $SCOPE" |
     claude -p --agent reviewer --max-budget-usd "$BUDGET_USD" \
-      --allowedTools "Read,Grep,Glob" --disallowedTools "Edit,Write,Bash" > "$TMP/review.txt" 2>&1
+      --allowedTools "Read,Grep,Glob" --disallowedTools "Edit,Write,Bash" > "$TMP/review.txt" 2>&1 ||
+    { STOP="aborted: reviewer call failed - $(head -1 "$TMP/review.txt")"; break; }
   VERDICT="$(grep -oE 'VERDICT: (PASS|FAIL)' "$TMP/review.txt" | tail -1)"
   VERDICT="${VERDICT:-VERDICT: missing}"
 
@@ -60,8 +61,9 @@ $(cat "$TMP/review.txt")
 End with two short lists: 'Fixed:' and 'Skipped:' (each item one line, with the reason when skipped)." |
     claude -p --max-budget-usd "$BUDGET_USD" --permission-mode acceptEdits \
       --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run check),Bash(npx vitest:*)" \
-      --disallowedTools "Edit(docs/spec.md),Write(docs/spec.md),Bash(git:*)" > "$TMP/fix.txt" 2>&1
-  log "- Fix pass (working tree vs base): $(git diff --shortstat | sed 's/^ *//')"
+      --disallowedTools "Edit(docs/spec.md),Write(docs/spec.md),Bash(git:*)" > "$TMP/fix.txt" 2>&1 ||
+    { STOP="aborted: fixer call failed - $(head -1 "$TMP/fix.txt")"; break; }
+  log "- Fix pass (working tree vs base): $(git diff --shortstat -- . ':!docs/loop-log.md' | sed 's/^ *//')"
   sed -n '/Fixed:/,$p' "$TMP/fix.txt" | sed 's/^/  > /' >> "$LOG"
   i=$((i + 1))
 done

@@ -384,7 +384,7 @@ JSON under `/api`, handled by one route file (`src/app/api/[...path]/route.ts`) 
   `MAX_ITER` times (default 3). It stops when the gate is green and the reviewer reports no high or
   medium findings, or when the limit is reached. Every iteration is appended to `docs/loop-log.md`.
   The fixer never edits `docs/spec.md` and never commits; the author reviews the diff and commits.
-- Tests: `src/lib/**.test.ts` and `src/server/**.test.ts`; server tests use an in-memory database.
+- Tests: `src/lib/**.test.ts`, `src/server/**.test.ts` and the route test `src/app/api/[...path]/route.test.ts`; server tests use an in-memory database.
   Interface behaviour without unit tests is checked in the browser and by independent QA runs
   (`docs/qa-plan.md`).
 

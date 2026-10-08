@@ -148,15 +148,22 @@ const handlers: Record<string, Record<string, Handler>> = {
   },
 };
 
-function dispatch(db: Db, request: ApiRequest, now: number, secure: boolean): ApiResponse {
+type RouteInfo = Pick<ApiRequest, "method" | "path" | "origin" | "host">;
+
+export function routeError(request: RouteInfo): ApiResponse | null {
   if (!Object.hasOwn(handlers, request.path)) return fail(404, "not-found");
   const routes = handlers[request.path];
   if (!Object.hasOwn(routes, request.method)) return fail(405, "method-not-allowed");
-  const handler = routes[request.method];
+  if (request.method !== "GET" && !sameOrigin(request.origin, request.host)) return fail(403, "forbidden-origin");
+  return null;
+}
+
+function dispatch(db: Db, request: ApiRequest, now: number, secure: boolean): ApiResponse {
+  const routed = routeError(request);
+  if (routed !== null) return routed;
+  const handler = handlers[request.path][request.method];
 
   const changesState = request.method !== "GET";
-  if (changesState && !sameOrigin(request.origin, request.host)) return fail(403, "forbidden-origin");
-
   const parsed = changesState ? parseBody(request.body, request.contentType) : { body: {} };
   if ("rejected" in parsed) return parsed.rejected;
 
