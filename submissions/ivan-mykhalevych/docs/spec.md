@@ -1,4 +1,4 @@
-# Spec: Java Interview Prep (v1.0)
+# Spec: Java Interview Prep (v1.1)
 
 > **This spec is the single source of truth.** Every change starts here: update the requirement
 > and add a line to "Spec changes" with the reason, then write a failing test, then change the
@@ -379,6 +379,11 @@ JSON under `/api`, handled by one route file (`src/app/api/[...path]/route.ts`) 
   (`.githooks/pre-commit`, enabled with `git config core.hooksPath submissions/ivan-mykhalevych/.githooks`)
   runs it for commits that touch the app; `RED_COMMIT=1` skips it only for a test-first commit whose
   tests fail; `--no-verify` is never used.
+- Review loop: `npm run loop -- <paths>` (`scripts/review-loop.sh`) repeats gate (`npm run check`),
+  read-only review by `.claude/agents/reviewer.md`, then a fix pass by a separate agent, at most
+  `MAX_ITER` times (default 3). It stops when the gate is green and the reviewer reports no high or
+  medium findings, or when the limit is reached. Every iteration is appended to `docs/loop-log.md`.
+  The fixer never edits `docs/spec.md` and never commits; the author reviews the diff and commits.
 - Tests: `src/lib/**.test.ts` and `src/server/**.test.ts`; server tests use an in-memory database.
   Interface behaviour without unit tests is checked in the browser and by independent QA runs
   (`docs/qa-plan.md`).
@@ -439,6 +444,8 @@ email, two-factor authentication, social login, roles or an admin area, rate lim
 multi-server deployment.
 
 ## Spec changes
+- v1.1 (8 October 2026, mentor review): the development rules gain the scripted review loop, so a
+  review-fix cycle runs to a stop condition and leaves a log instead of being a manual description.
 - v1.0 (2 October 2026, by the author's decision): the spec was rewritten from the code so that both
   agree, and it becomes the single source of truth again: changes go spec first, then a failing
   test, then code. `docs/reference.md` (the code-derived description used on 1 October) was merged
